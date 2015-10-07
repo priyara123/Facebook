@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Profile</title>
+    <link href="/stylesheets/bootstrap.css" rel="stylesheet">
+    <link href="/stylesheets/profile.css" rel="stylesheet">
+    <link href="/stylesheets/custom.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.5.4/bootstrap-select.min.css">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  </head>
+
+  <body ng-app="profile" ng-controller="profileCtrl" onunload = "onBack()">      
+        <nav class="navbar navbar-blue navbar-static-top" role="navigation">
+          <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
+              <ul class="nav navbar-nav">
+                <li><a href="#">.<h4></h4></a></li>
+                <li><a href="#"></a></li>
+                <li><a href="#"></a></li>
+                <li class="right" style="position:absolute;right:250px;"><button data-target="#notif" data-toggle="modal" class="btn btn-link"><h4>Notifications</h4></button></li>
+                <li class="right" style="position:absolute;right:150px;"><button class="btn btn-link" ng-click="home()"><h4>Home</h4></button></li>
+                <li class="right" style="position:absolute;right:30px;"><button class="btn btn-link" ng-click="logout()"><h4>Sign Out</h4></button></li>
+              </ul>
+        </nav>
+      <div>
+        <p><br/></p>
+      </div>
+      <div class="padding">
+          <div class="full col-sm-9">
+              <div class="fb-profile">
+                  <img align="left" alt="Profile image example" class="fb-image-profile thumbnail" src="/img/user.png"><br>
+                  <p class="lead" style="color:blue">{{user.firstName}}&nbsp;&nbsp;{{user.lastName}}</p>
+                  <p><button data-target="#post" data-toggle="modal" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus">
+                  </span>&nbsp;Write Post</button></p>
+              </div>
+          </div>
+      </div>
+      <div class="padding">
+        <div class="padding">
+
+            <!-- About -->          
+            <div class="fb-profile">
+                <!-- <div class="row"> -->
+                  <div class="col-sm-3" style="margin-left:50px;">
+                      <div class="panel panel-default">
+                        <div class="panel-body">
+                          <p class="lead">About {{user.firstName}}</p>
+                          <p>Gender: {{user.gender}}</p>
+                          <p>Birthday: {{user.dob}}</p>
+                          <p>Work: {{user.work == NULL ? 'No work to show' : user.work}}</p>
+                          <p>Education: {{user.education == NULL ? 'No education to show' : user.education}}</p>
+                          <p>{{friends.length}} Followers, 13 Posts</p>
+                        </div>
+                      </div>
+                  <!-- </div> -->
+
+                  <!-- <div class="col-sm-3" style="margin-left:62px;"> -->
+                <div class="panel panel-default">
+                  <div class="panel-body" ng-show="user.friends.length > 0">
+                    <p class="lead" >Friends</p>
+                    <p>{{user.friends.length}} Friends</p>
+                    <table>
+                      <tbody>
+                        <tr ng-repeat = "friend in user.friends">
+                          <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                          <td><a type="button" class="btn btn-link" ng-click="viewProfile(friend.email)">{{friend.firstName}}&nbsp;{{friend.lastName}}</a></td>
+                        </tr>
+                      </tbody>
+                    </table>                                                                        
+                  </div>
+                </div>
+                <div class="panel panel-default">
+                  <div class="panel-body" ng-show="user.groups.length > 0">
+                      <p class="lead">Groups</p>
+                      <p>{{user.groups.length}} Groups</p>
+                      <table>
+                        <tbody>
+                          <tr ng-repeat = "group in user.groups">
+                            <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                            <td><p>&nbsp;&nbsp;{{group.gname}}</p></td>
+                          </tr>
+                        </tbody>
+                      </table>                                                                        
+                  </div>
+                </div>
+              </div>
+
+
+                </div>
+                <div class="col-sm-8">
+                  <div class="col-sm-1" style="margin-left:20px;">
+            <p></p>
+          </div>          
+
+          <div class="fb-profile" style="margin-left:100px;">
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <p class="lead">Timeline</p>
+                <p>See your timeline posts here</p>
+              </div>
+              <div ng-show="(user.posts.length > 0)" ng-repeat="post in user.posts">
+                <div class="panel panel-default" style="margin-left:30px;margin-right:20px" >
+                  <div class="panel-body">
+                    <p>{{post.pDesc}}</p>
+                    <p>{{post.pDate}}</p>
+                  </div>
+                </div>
+            </div>
+            </div>
+          </div>                      
+                <!-- </div> -->
+            </div>
+            <!-- About -->          
+
+            <!-- Friends -->
+            <!-- <div class="row">
+              <div class="col-sm-3" style="margin-left:62px;">
+                <div class="panel panel-default">
+                  <div class="panel-body" ng-show="user.friends.length > 0">
+                    <p class="lead" >Friends</p>
+                    <p>{{user.friends.length}} Friends</p>
+                    <table>
+                      <tbody>
+                        <tr ng-repeat = "friend in user.friends">
+                          <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                          <td><a type="button" class="btn btn-link" ng-click="viewProfile(friend.email)">{{friend.firstName}}&nbsp;{{friend.lastName}}</a></td>
+                        </tr>
+                      </tbody>
+                    </table>                                                                        
+                  </div>
+                </div>
+              </div>
+            </div> -->
+            <!-- Friends -->
+            
+            <!-- Groups -->
+            <!-- <div class="row">
+              <div class="col-sm-3" style="margin-left:62px;">
+                <div class="panel panel-default">
+                  <div class="panel-body" ng-show="user.groups.length > 0">
+                      <p class="lead">Groups</p>
+                      <p>{{user.groups.length}} Groups</p>
+                      <table>
+                        <tbody>
+                          <tr ng-repeat = "group in user.groups">
+                            <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                            <td><p>&nbsp;&nbsp;{{group.gname}}</p></td>
+                          </tr>
+                        </tbody>
+                      </table>                                                                        
+                  </div>
+                </div>
+              </div>
+            </div> -->
+            <!-- Groups -->
+
+        </div>
+      </div>
+
+      <!-- <div class="padding">
+        <div class="padding">
+          <div class="col-sm-1" style="margin-left:20px;">
+            <p></p>
+          </div>
+
+          <div class="col-sm-4" style="margin-left:40px;">
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <p class="lead">Timeline</p>
+                <p>See your timeline posts here</p>
+              </div>
+              <div ng-show="(user.posts.length > 0)" ng-repeat="post in user.posts">
+                <div class="panel panel-default" >
+                  <div class="panel-body">
+                    <p>{{post.pDesc}}</p>
+                    <p>{{post.pDate}}</p>
+                  </div>
+                </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div> -->
+
+
+
+<!-- write post modal -->
+    <div class="modal fade" id="post" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+              <h4 class="modal-title">Post on your timeline</h4>
+            </div>
+            <div class="modal-body">
+              <form name="postForm" id = "postForm">
+                  <div>
+                      <input class ="post" id ="post" placeholder="  enter post details">
+                  </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" data-ng-click = "" data-dismiss="modal"><span class="glyphicon glyphicon-remove-sign"></span></button>
+              <button type="button" class="btn btn-primary" data-ng-click = "addPost()" data-dismiss="modal"><span class="glyphicon glyphicon-ok-circle"></span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+<!-- notification modal -->
+      <div class="modal fade" id="notif" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+              <h4 class="modal-title">Check your notifications here</h4>
+            </div>
+            <div class="modal-body">
+              <p ng-show="!(user.notifications.length > 0)">You have no friend requests pending to accept.</p>
+                <table ng-show="user.notifications.length > 0">
+                  <thead></thead>
+                  <tbody>
+                    <tr ng-repeat="notification in user.notifications">
+                        <td>You have a friend request from&nbsp;<a type="button" class="btn btn-link" ng-click="viewProfile(notification.email2)">{{notification.email2}}</a></td>
+                        <td><button class="btn btn-info btn-xs" ng-click="acceptFR(notification.email2)"><span class="glyphicon glyphicon-ok-sign"></span></button></td>
+                        <td>&nbsp;&nbsp;<button class="btn btn-danger btn-xs" ng-click="deleteFR()"><span class="glyphicon glyphicon-remove-sign"></span></button></td>
+                    </tr>
+                  </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+</body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script>
+  
+  $(window).on("navigate", function (event, data) {
+    var direction = data.state.direction;
+    console.log("direction = " + direction);
+    if (direction == 'back') {
+        window.location = '/profile';
+    }
+});
+  var app = angular.module('profile', []);
+      app.controller('profileCtrl', function($http, $scope) {
+        
+        var refresh = function() {
+            $http.get('/getData').success(function (response) {
+              $scope.user = response.userProfile;
+              console.log(response);
+            }).error(function(error){
+                alert(error);
+            });
+        };
+
+        refresh();      
+        $scope.logout = function() {
+          $http({
+                  method: 'POST',
+                  url: '/logout'
+                  }).success(function(response){
+                    window.location='/';
+                  }).error(function(error){
+                      alert(error);
+              });
+        }
+
+        $scope.home = function() {
+          $http.get('/home').success(function (){
+            window.location = '/home';
+          }).error(function (err) {
+              alert(err);
+          }); 
+        };
+
+        $scope.acceptFR = function(userid) {
+          $http({
+              method: 'POST',
+              url: '/addFriend',
+              data: {
+                "frndname": userid
+              }
+            }).success(function(response) {
+                console.log("add success");
+                refresh();
+            }).error(function(err) { 
+                alert(err);
+                console.log("error occured " + err);
+            });
+        };
+        $scope.addPost = function() {
+          var pDesc = $("#postForm *").filter("input[id='post']").val();
+          $http({
+            method: 'POST',
+            url: '/post',
+            data: {
+              "username" : $scope.username,
+              "desc" : pDesc
+            }
+          }).success(function(response) {
+            refresh();
+          }).error(function(err) {
+            alert(err);
+          });
+        };
+
+        $scope.viewProfile = function(userId) {
+          console.log("Inside viewProfile");
+          $http.get('/user/' + userId).success(function(response) {
+            window.location = '/user/' + userId;
+          }).error(function (error) {
+            console.log(error);
+          });
+        };
+    });
+      
+</script>
+</html>

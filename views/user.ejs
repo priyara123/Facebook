@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Profile</title>
+    <link href="/stylesheets/bootstrap.css" rel="stylesheet">
+    <link href="/stylesheets/sticky-footer.css" rel="stylesheet">
+   <link href="/stylesheets/profile.css" rel="stylesheet">
+   <link href="/stylesheets/datepicker.css" rel="stylesheet">
+   <link href="/stylesheets/custom.css" rel="stylesheet">
+
+   <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  </head>
+
+  <body ng-app="user" ng-controller="userCtrl">      
+        <nav class="navbar navbar-blue navbar-static-top" role="navigation">
+          <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
+                    <!-- <form class="navbar navbar-blue navbar-static-top"></form> -->
+                    <ul class="nav navbar-nav">
+                <li><a href="#">.<h4></h4></a></li>
+                <li><a href="#"></a></li>
+                <li><a href="#"></a></li>
+                <li class="right" style="position:absolute;right:120px;" data-toggle="modal" data-target="#status"><a href="/home"><h4>Home</h4></a></li>
+                <li class="right" style="position:absolute;right:20px;"><a href="/logout"><h4>Sign Out</h4></a></li>
+              </ul>
+                    </nav>
+      <!-- <div class="padding">
+        <img align="center" height="150px" src="/img/blue.jpg" style="margin-left:30px;" width="90%">        
+      </div>-->
+      <div class="padding">
+          <div class="full col-sm-9">
+              <div class="fb-profile">
+                  <img align="left" alt="Profile image example" class="fb-image-profile thumbnail" src="/img/user.png"><br>
+                  <p class="lead"><%= firstname %>&nbsp;<%= lastname %></p>
+                  <p ng-show="true" ng-model="username" id="username"><%= username %></p>
+                  <p><button type="btn btn-info sm" ng-click="addFriend()">Add Friend</button></p>
+              </div>
+          </div>
+      </div>
+      <div class="padding">
+        <div class="padding">
+            <div class="fb-profile">
+                <!-- <div class="full col-sm-9"> -->
+                    <!-- content -->
+
+                    <div class="row">
+                        <!-- main col left -->
+
+                        <div class="col-sm-3" style="margin-left:50px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <p class="lead">About {{useri.firstName}}</p>
+                                    <p>Gender: {{user.gender}}</p>
+                                    <p>Birthday: {{user.dob}}</p>
+                                    <p>{{friends.length}} Followers, 13 Posts</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6" style="margin-left:20px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <p class="lead">Urbanization</p>
+
+                                    <p>45 Followers, 13 Posts</p>
+
+                                    <p><img height="28px" src=
+                                    "https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28"
+                                    width="28px"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- content -->
+
+                    <div class="row">
+                        <!-- main col left -->
+
+                        <div class="col-sm-3" style="margin-left:50px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body" ng-show="friends.length > 0">
+                                    <p class="lead" >Friends</p>
+                                    <p>{{friends.length}} Friends</p>
+                                    <table>
+                                      <thead>
+                                      </thead>
+                                      <tbody>
+                                        <tr ng-repeat = "friend in friends">
+                                          <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                                          <td><a>&nbsp;&nbsp;{{friend.firstName}}&nbsp;&nbsp;{{friend.lastName}}</a></td>
+                                        </tr>
+                                      </tbody>
+                                    </table>                                                                        
+                                </div>
+                            </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <!-- main col left -->
+
+                        <div class="col-sm-3" style="margin-left:50px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <p class="lead">Groups</p>
+
+                                    <p>45 Followers, 13 Posts</p>
+
+                                    <p><img height="28px" src=
+                                    "https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28"
+                                    width="28px"></p>
+                                </div>
+                            </div>
+                        </div>
+                      </div>
+                    <!-- </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script>
+  var app = angular.module('user', []);
+      app.controller('userCtrl', function($http, $scope) {
+        $scope.addFriend = function() {          
+          var username = window.location.href.split('/')[4];
+          console.log(username);
+          $http({
+              method: 'POST',
+              url: '/addFriend',
+              data: {
+                "frndname": username
+              }
+            }).success(function(response) {
+              console.log("addfrnd success");
+          }).error (function(err) { 
+            alert(err);
+            console.log("error occured " + err);
+          });
+        };
+      });
+      
+</script>
+</html>
