@@ -452,8 +452,28 @@ exports.createGroup = function(req, res) {
 			    	console.log("/createGroup step1 success " + data.gAdmin + "; desc = " + data.gDesc);
 			    }
 			});
+			//test start
 			setTimeout(function() {
-				var sql = "insert into usergroups select max(groupid),gadmin from groups";
+				var sql = "select max(groupid),gadmin from groups";
+			    var query = dbConn.query(sql, function(err, rows) {
+			    	process.nextTick(function(){
+			    		mysql.waitPool(null);
+			      	});			
+			      	if (err) {
+			      		console.log(err);
+			      		//exce.mySqlException(err, res);
+			      	} 
+			      	else {
+			      		console.log("max grpid, admin is......");
+			      		console.log(rows);							      					     
+			      	}
+			    });
+			}, 6500);
+			
+			//test end
+			
+			setTimeout(function() {
+				var sql = "insert into usergroups (select groupid,gadmin from groups where groupid in (select max(groupid) from groups))";
 			    var query = dbConn.query(sql, function(err, rows) {
 			    	process.nextTick(function(){
 			    		mysql.waitPool(null);
@@ -467,7 +487,7 @@ exports.createGroup = function(req, res) {
 			      		req.session.status = "success";							      					     
 			      	}
 			    });
-			}, 2000); 	
+			}, 600); 	
 			res.send(req.session);
 			mysql.returnDbConn(dbConn);
 		}
@@ -493,14 +513,18 @@ function getGroupMembers(req, res, grpId) {
 				exce.mySqlException(err, res);
 			} 
 			else {
-				//console.log(rows);
-				req.session.groupProfile = rows;
-//				req.session.groupProfile.name = rows[0].gname;
-//				req.session.groupProfile.desc = rows[0].gdesc;
-//				req.session.groupProfile.memberCount = rows.length;
-				console.log("grpinfo for " + rows[0].gName);
-				//console.log(req.session.groupProfile);
-				res.send(req.session);
+				//console.log(rows);				
+				if(rows.length == 0) {
+					console.log("grp doesn't exist");
+					req.session.status = "group doesn't exist";
+					res.send(req.session);
+				}
+				else {
+					console.log("grpinfo for " + rows[0].gName);
+					req.session.groupProfile = rows;
+					req.session.status = "success";
+					res.send(req.session);
+				}
 			}			
 		});
 		mysql.returnDbConn(dbConn);
