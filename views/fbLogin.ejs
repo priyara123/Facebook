@@ -31,7 +31,7 @@
           <table><tr><td>
             <div class="form-group">
               <label for="userEmail">Email</label>
-              <input type="email" class="form-control input-sm" ng-model="userid" placeholder="Email" required>&nbsp;
+              <input type="email" class="form-control input-sm" ng-model="userId" placeholder="Email" required>&nbsp;
             </div>
           </td><td>
             <div class="form-group">
@@ -120,8 +120,12 @@
                   "gender": gender,
                   "dob": dob
                 }
-             });
-             console.log($scope.fName + " " + $scope.lName + " " + $scope.email + " " + $scope.pswd + " " + gender + " " + dob);
+             }).success(function (response) {
+                if(response.status == "success")
+                  window.location = '/profile';
+             }).error(function (error) {
+                alert(error);
+             });             
           };
 
           $scope.login = function() {
@@ -129,13 +133,11 @@
               method: 'POST',
               url: '/login',
               data: {
-                "userid": $scope.userid,
+                "userId": $scope.userId,
                 "password": $scope.password
               }
             }).success(function (response) {
-                if(response.Status == "Success"){
-                  console.log(response);
-                  console.log("next page");
+                if(response.status == "success"){
                   window.location = '/profile';
                 }
             }).error(function(error) {

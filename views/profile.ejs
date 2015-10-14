@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="profile" ng-controller="profileCtrl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Profile</title>
+    <title>{{user.firstname}}&nbsp;{{user.lastname}}</title>
     <link href="/stylesheets/bootstrap.css" rel="stylesheet">
     <link href="/stylesheets/profile.css" rel="stylesheet">
     <link href="/stylesheets/custom.css" rel="stylesheet">
@@ -15,7 +15,7 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
   </head>
 
-  <body ng-app="profile" ng-controller="profileCtrl" onunload = "onBack()">      
+  <body>      
         <nav class="navbar navbar-blue navbar-static-top" role="navigation">
           <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
               <ul class="nav navbar-nav">
@@ -34,9 +34,22 @@
           <div class="full col-sm-9">
               <div class="fb-profile">
                   <img align="left" alt="Profile image example" class="fb-image-profile thumbnail" src="/img/user.png"><br>
-                  <p class="lead" style="color:blue">{{user.firstName}}&nbsp;&nbsp;{{user.lastName}}</p>
-                  <p><button data-target="#post" data-toggle="modal" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus">
-                  </span>&nbsp;Write Post</button></p>
+                  <p class="lead" style="color:blue">{{user.firstname}}&nbsp;&nbsp;{{user.lastname}}</p>
+                  <table><tr>
+                    <td><button data-target="#addPost" data-toggle="modal" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus"></span>&nbsp;Write Post</button></td><td>&nbsp;&nbsp;</td>
+                    <td><button data-target="#createGroup" data-toggle="modal" class="btn btn-success btn-sm"><span class="glyphicon glyphicon-plus"></span>&nbsp;Create Group</button></td>                    
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                      <div ng-show = "showNote" class="alert alert-info fade in">
+                        <a href="#" class="close" data-dismiss="alert">×</a>
+                        <strong>Note:</strong> <p id="note">Create Group Success. You can view your group in "Groups I own" section</p>
+                      </div>
+                      <div ng-show = "showError"  class="alert alert-danger fade in">
+                        <a href="#" class="close" data-dismiss="alert">×</a>
+                        <strong>Note:</strong><p id="error"> Create Group Success. You can view your group in "Groups I own" section</p>
+                      </div>
+                    </td></tr>
+                  </table>                  
               </div>
           </div>
       </div>
@@ -49,7 +62,7 @@
                   <div class="col-sm-3" style="margin-left:50px;">
                       <div class="panel panel-default">
                         <div class="panel-body">
-                          <p class="lead">About {{user.firstName}}</p>
+                          <p class="lead">About {{user.firstname}}</p>
                           <p>Gender: {{user.gender}}</p>
                           <p>Birthday: {{user.dob}}</p>
                           <p>Work: {{user.work == NULL ? 'No work to show' : user.work}}</p>
@@ -68,7 +81,7 @@
                       <tbody>
                         <tr ng-repeat = "friend in user.friends">
                           <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
-                          <td><a type="button" class="btn btn-link" ng-click="viewProfile(friend.email)">{{friend.firstName}}&nbsp;{{friend.lastName}}</a></td>
+                          <td><a type="button" class="btn btn-link" ng-click="viewProfile(friend.email, true)">{{friend.firstName}}&nbsp;{{friend.lastName}}</a></td>
                         </tr>
                       </tbody>
                     </table>                                                                        
@@ -76,13 +89,31 @@
                 </div>
                 <div class="panel panel-default">
                   <div class="panel-body" ng-show="user.groups.length > 0">
-                      <p class="lead">Groups</p>
+                      <p class="lead">Group Membership</p>
                       <p>{{user.groups.length}} Groups</p>
                       <table>
                         <tbody>
                           <tr ng-repeat = "group in user.groups">
                             <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
-                            <td><p>&nbsp;&nbsp;{{group.gname}}</p></td>
+                            <td><a type="button" class="btn btn-link" ng-click="viewGroup(group.groupId, group.isGroupMember)">{{group.gName}}</a></td>
+                          </tr>
+                        </tbody>
+                      </table>                                                                        
+                  </div>
+                </div>
+                <!--Groups I own-->
+                <div class="panel panel-default">
+                  <div class="panel-body" ng-show="user.myGroups.length > 0">
+                      <p class="lead">Groups I own</p>
+                      <p>{{user.myGroups.length}} Groups</p>
+                      <table>
+                        <tbody>
+                          <tr ng-repeat = "group in user.myGroups">
+                            <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                            <td><a type="button" class="btn btn-link" ng-click="viewGroup(group.groupId, group.isGroupMember)">{{group.gName}}</a></td>
+                            <!-- <td><p>&nbsp;&nbsp;{{group.gName}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p></td>                             -->
+                            <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                            <td><button type="button" class="btn btn-danger btn-xs" ng-click = "deleteGroup(group.gName, group.groupId)">Delete Group</button></td> 
                           </tr>
                         </tbody>
                       </table>                                                                        
@@ -187,10 +218,36 @@
         </div>
       </div> -->
 
-
+<!-- create group modal -->
+    <div class="modal fade" id="createGroup" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+              <h4 class="modal-title">Enter Group details</h4>
+            </div>
+            <div class="modal-body">
+              <form name="grpForm" id = "grpForm">
+                  <div>
+                    <table><tr>
+                      <td><input id ="gname" class = "form-control" placeholder = "enter group name"></td></tr>
+                      <tr>&nbsp;<br/></tr>
+                      <tr><td><textarea placeholder="enter a brief description about the group" class = "form-control" rows="2" cols="50" id="gdesc"></textarea></td></tr></table>
+                  </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-danger" ng-click = "" data-dismiss="modal"><span class="glyphicon glyphicon-remove-sign"></span></button>
+              <button type="button" class="btn btn-primary" ng-click = "createGroup()" data-dismiss="modal"><span class="glyphicon glyphicon-ok-circle"></span></button>
+            </div>
+          </div>
+        </div>
+      </div>
 
 <!-- write post modal -->
-    <div class="modal fade" id="post" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
+    <div class="modal fade" id="addPost" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
@@ -224,21 +281,30 @@
               <h4 class="modal-title">Check your notifications here</h4>
             </div>
             <div class="modal-body">
-              <p ng-show="!(user.notifications.length > 0)">You have no friend requests pending to accept.</p>
+              <p ng-show="!(user.notifications.length > 0)">No notifications to show</p>
                 <table ng-show="user.notifications.length > 0">
                   <thead></thead>
                   <tbody>
-                    <tr ng-repeat="notification in user.notifications">
-                        <td>You have a friend request from&nbsp;<a type="button" class="btn btn-link" ng-click="viewProfile(notification.email2)">{{notification.email2}}</a></td>
+                    <tr ng-repeat="notification in user.notifications">                      
+                        <td>{{notification.nDesc == 'FR' ? 'You have a friend request from ' : 'User has accepted your request'}}&nbsp;<a type="button" class="btn btn-link" ng-click="viewProfile(notification.email2, true)">{{notification.email2}}</a></td>
+                        <td><button ng-show="{{notification.nDesc == 'FR'}}" class="btn btn-info btn-xs" ng-click="acceptFR(notification.email2)"><span class="glyphicon glyphicon-ok-sign"></span></button></td>
+                        <td>&nbsp;&nbsp;<button class="btn btn-danger btn-xs" ng-click="deleteFR(notification.email2, notification.nDesc)"><span class="glyphicon glyphicon-remove-sign"></span></button></td>  
+                    </tr>
+
+                    <!-- <tr ng-repeat="notification in user.notifications">
+                        <td>You have a friend request from&nbsp;<a type="button" class="btn btn-link" ng-click="viewProfile(notification.email2, true)">{{notification.email2}}</a></td>
                         <td><button class="btn btn-info btn-xs" ng-click="acceptFR(notification.email2)"><span class="glyphicon glyphicon-ok-sign"></span></button></td>
                         <td>&nbsp;&nbsp;<button class="btn btn-danger btn-xs" ng-click="deleteFR()"><span class="glyphicon glyphicon-remove-sign"></span></button></td>
-                    </tr>
+                    </tr> -->
+
                   </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
+
+
 
 
 </body>
@@ -259,15 +325,41 @@
       app.controller('profileCtrl', function($http, $scope) {
         
         var refresh = function() {
+          $scope.showNote = false;
             $http.get('/getData').success(function (response) {
               $scope.user = response.userProfile;
-              console.log(response);
+              //console.log(response);
             }).error(function(error){
                 alert(error);
             });
         };
 
-        refresh();      
+        var refreshFriends = function () {
+          $http.get('/userFriends').success(function (response) {
+              $scope.user = response.userProfile;    
+              //console.log("response from userfrnds");
+              //console.log(response);
+            }).error(function(error){
+                alert(error);
+            });
+        };
+
+
+        var refreshProfile = function () {
+        $http.get('/refreshProfile').success(function (response) {
+              $scope.user = response.userProfile;    
+              //console.log(response);
+            }).error(function(error){
+                alert(error);
+            });
+        };
+
+        refreshProfile();
+
+        setInterval(function() {
+           refreshProfile(); 
+        }, 1000 * 60 * 2);
+             
         $scope.logout = function() {
           $http({
                   method: 'POST',
@@ -279,24 +371,88 @@
               });
         }
 
-        $scope.home = function() {
-          $http.get('/home').success(function (){
-            window.location = '/home';
-          }).error(function (err) {
-              alert(err);
-          }); 
-        };
-
-        $scope.acceptFR = function(userid) {
+        $scope.createGroup = function() {
+          var gname = $("#grpForm *").filter("input[id='gname']").val();
+          var gdesc = $('#gdesc').val();
+          console.log("gdesc = " + gdesc);
           $http({
               method: 'POST',
-              url: '/addFriend',
+              url: '/createGroup',
               data: {
-                "frndname": userid
+                "gname": gname,
+                "gdesc": gdesc
+              }
+            }).success(function (response) {              
+                if(response.status == "success") {
+                  refreshProfile();
+                  $scope.showNote = true;
+                }
+            }).error(function (err) {
+                alert(err);
+            });
+          }        
+
+          $scope.deleteFR = function(frndName, nDesc) {
+            $http({
+              method: 'POST',
+              url: '/deleteFR',
+              data: {
+                frndName: frndName,
+                nDesc: nDesc
+              }
+            }).success(function (response) {
+                if(response.status == "success") {
+                  refreshProfile();
+                }
+            }).error(function (err) {
+              alert(err);
+            });
+          }
+
+        // $scope.home = function() {
+        //   $http.get('/home').success(function (){
+        //     window.location = '/home';
+        //   }).error(function (err) {
+        //       alert(err);
+        //   }); 
+        // };
+
+        $scope.home = function() {
+          window.location = '/home';
+        }
+
+        $scope.deleteGroup = function(gName, grpId) {
+          alert("By deleting a group, all its members are also deleted");
+          console.log("deleting: " + gname);
+          $http({
+            method: 'POST',
+            url: '/deleteGroup',
+            data: {
+              gName: gName,
+              grpId: grpId
+            }
+          }).success(function (response) {
+            if(response.status == "success") {
+              $('#note').text('Delete Group Success');
+              $scope.showNote = true;
+              refreshProfile();
+            }
+          }).error (function (err) {
+            alert(err);
+          })
+        }
+
+        $scope.acceptFR = function(userId) {
+          $http({
+              method: 'POST',
+              url: '/acceptRequest',
+              data: {
+                "userId": userId
               }
             }).success(function(response) {
                 console.log("add success");
-                refresh();
+                refreshFriends();
+                //refresh();
             }).error(function(err) { 
                 alert(err);
                 console.log("error occured " + err);
@@ -312,16 +468,39 @@
               "desc" : pDesc
             }
           }).success(function(response) {
-            refresh();
+            refreshFriends();
           }).error(function(err) {
             alert(err);
           });
         };
 
-        $scope.viewProfile = function(userId) {
+        $scope.viewProfile = function(userId, isFriend) {
           console.log("Inside viewProfile");
-          $http.get('/user/' + userId).success(function(response) {
-            window.location = '/user/' + userId;
+          $http({
+            method: 'POST',
+            url: '/viewProfile',
+            data: {
+              "userId": userId,
+              "isFriend": isFriend
+            }
+          }).success(function(response) {
+            window.location = '/viewProfile';
+          }).error(function (error) {
+            console.log(error);
+          });
+        };
+
+        $scope.viewGroup = function(grpId, isGroupMember) {
+          console.log("Inside viewGroup");
+          $http({
+            method: 'POST',
+            url: '/viewGroup',
+            data: {
+              "grpId": grpId,
+              "isGroupMember": isGroupMember
+            }
+          }).success(function(response) {
+              window.location = '/viewGroup';
           }).error(function (error) {
             console.log(error);
           });

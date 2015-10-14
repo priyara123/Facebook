@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="fProfile" ng-controller="fProfileCtrl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>View Profile</title>
+    <title>{{user.firstName}}&nbsp;{{user.lastName}}</title>
     <link href="/stylesheets/bootstrap.css" rel="stylesheet">
     <link href="/stylesheets/sticky-footer.css" rel="stylesheet">
    <link href="/stylesheets/profile.css" rel="stylesheet">
@@ -15,7 +15,7 @@
    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
   </head>
 
-  <body ng-app="fProfile" ng-controller="fProfileCtrl">      
+  <body>      
         <nav class="navbar navbar-blue navbar-static-top" role="navigation">
           <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
                     <!-- <form class="navbar navbar-blue navbar-static-top"></form> -->
@@ -23,7 +23,8 @@
                 <li><a href="#">.<h4></h4></a></li>
                 <li><a href="#"></a></li>
                 <li><a href="#"></a></li>
-                <li class="right" style="position:absolute;right:150px;"><button class="btn btn-link" ng-click="home()"><h4>Home</h4></button></li>
+                <li class="right" style="position:absolute;right:270px;"><button class="btn btn-link" ng-click="home()"><h4>Home</h4></button></li>
+                <li class="right" style="position:absolute;right:136px;"><button class="btn btn-link" ng-click="gotoProfile()"><h4>My Profile</h4></button></li>
                 <li class="right" style="position:absolute;right:30px;"><button class="btn btn-link" ng-click="logout()"><h4>Sign Out</h4></button></li>
               </ul>
                     </nav><br/>
@@ -35,7 +36,7 @@
               <div class="fb-profile">
                   <img align="left" alt="Profile image example" class="fb-image-profile thumbnail" src="/img/user.png"><br>
                   <p class="lead">{{user.firstName}}&nbsp;&nbsp;{{user.lastName}}</p>
-                  <p><button class = "btn btn-success xs" ng-click="addFriend()" ng-show="!user.isFriend">Add Friend</button></p>
+                  <p><button class = "btn btn-success xs" ng-click="addFriend(user.email)" ng-show="!user.isFriend">Add Friend</button></p>
               </div>
           </div>
       </div>
@@ -102,7 +103,7 @@
                                       <tbody>
                                         <tr ng-repeat = "group in user.groups">
                                           <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
-                                          <td><p>&nbsp;&nbsp;{{group.gname}}</p></td>
+                                          <td><p>&nbsp;&nbsp;{{group.gName}}</p></td>
                                         </tr>
                                       </tbody>
                                     </table>                                                                        
@@ -125,47 +126,78 @@
   var app = angular.module('fProfile', []);
       app.controller('fProfileCtrl', function($http, $scope) {
 
-        var refreshFriends = function () {
-          $http.get('/userFriends').success(function (response) {
-              $scope.friends = response.friends;    
-              console.log("response from userfrnds");
-              console.log(response.friends);
-            }).error(function(error){
-                alert(error);
-            });
-        };
+        // var refreshFriends = function () {
+        //   $http.get('/userFriends').success(function (response) {
+        //       $scope.friends = response.friends;    
+        //       console.log("response from userfrnds");
+        //       console.log(response.friends);
+        //     }).error(function(error){
+        //         alert(error);
+        //     });
+        // };
 
-        var refreshGroups = function () {
-          $http.get('/userGroups').success(function (response) {
-              $scope.groups = response.groups;    
-              console.log("response from grpfrnds");
-              console.log(response.groups);
-            }).error(function(error){
-                alert(error);
-            });
-        };
+        // var refreshGroups = function () {
+        //   $http.get('/userGroups').success(function (response) {
+        //       $scope.groups = response.groups;    
+        //       console.log("response from grpfrnds");
+        //       console.log(response.groups);
+        //     }).error(function(error){
+        //         alert(error);
+        //     });
+        // };
 
         var refresh = function() {
             $http.get('/user').success(function (response) {
-              //$scope.user = response.fProfile;
-              console.log(response.fProfile);
+              $scope.user = response.fProfile;
+              console.log(response);
             }).error(function(error){
                 alert(error);
             });
         };
 
+        // $scope.home = function() {
+        //   $http.get('/home').success(function (){
+        //     window.location = '/home';
+        //   }).error(function (err) {
+        //       alert(err);
+        //   }); 
+        // };
+
+        $scope.gotoProfile = function() {
+          window.location = '/profile';
+        }
+
+        $scope.home = function() {
+          window.location = '/home';
+        }
+
+
+        $scope.logout = function() {
+          $http({
+                  method: 'POST',
+                  url: '/logout'
+                  }).success(function(response){
+                    window.location='/';
+                  }).error(function(error){
+                      alert(error);
+              });
+        }
+
+
         refresh();      
 
-        $scope.addFriend = function() {
+        $scope.addFriend = function(userid) {
           $http({
               method: 'POST',
               url: '/addFriend',
               data: {
-                "frndname": "c@bing",
+                "userId": userid,
               }
             }).success(function(response) {
-                console.log("add success");
-                refreshFriends();
+                if (response.status == "success") {
+                  alert("Friend request sent");
+                  console.log("add success");
+                }
             }).error(function(err) { 
                 alert(err);
                 console.log("error occured " + err);
@@ -184,14 +216,33 @@
         }
 
 
-        /*non-friend view profile*/
-        $scope.nfViewProfile = function(userId, firstName, lastName) {
-            $http.get('/user/' + userId + '/' + firstName + '/' + lastName).success(function(response) {
-              window.location = '/user/' + userId + '/' + firstName + '/' + lastName;
-            }).error(function (error) {
-               alert(error);
-            });
-        }
+        // /*non-friend view profile*/
+        // $scope.nfViewProfile = function(userId, firstName, lastName) {
+        //     $http.get('/user/' + userId + '/' + firstName + '/' + lastName).success(function(response) {
+        //       window.location = '/user/' + userId + '/' + firstName + '/' + lastName;
+        //     }).error(function (error) {
+        //        alert(error);
+        //     });
+        // }
+
+        $scope.viewProfile = function(userId, isFriend) {
+                  console.log("Inside viewProfile");
+                  $http({
+                    method: 'POST',
+                    url: '/viewProfile',
+                    data: {
+                      "userId": userId,
+                      "isFriend": isFriend
+                    }
+                  }).success(function(response) {
+                    if(response.status == "current user")
+                      window.location = '/profile';
+                    else
+                      window.location = '/viewProfile';
+                  }).error(function (error) {
+                    console.log(error);
+                  });
+                };
 
         /*friend view profile*/
         // $scope.viewProfile = function(userId) {

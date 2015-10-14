@@ -44,20 +44,30 @@ app.get('/userGroups', user.userGroups);
 app.post('/addFriend', user.addFriend);
 app.post('/post', user.addPost);
 app.post('/logout', user.logout);
-app.get('/user/:userId', user.viewFProfile);
-//app.get('/fbLogin', function(req, res) {
-//	res.render('fbLogin');
-//});
-app.get('/profile', user.profile);
-app.get('/getData', function(req, res) {
+app.post('/viewProfile', user.getGuestProfile);
+app.post('/deleteFR', user.deleteRequest);
+app.get('/viewProfile', routes.viewGuestProfile);
+app.post('/search', user.search);
+app.get('/getFeed', user.getFeed);
+app.get('/profile', routes.profile);
+app.post('/viewGroup', user.getGroup);
+app.post('/joinGroup', user.joinGroup);
+app.post('/leaveGroup', user.leaveGroup);
+app.get('/viewGroup', routes.displayGroup);
+app.get('/refreshProfile', user.refreshProfile);
+app.post('/acceptRequest', user.acceptRequest);
+app.get('/refreshGroup/:grpId', user.refreshGroup);
+app.get('/home', routes.home);
+app.post('/createGroup', user.createGroup);
+app.post('/deleteGroup', user.deleteGroup);
+app.get('/getData', function(req, res) {		
 	res.json(req.session);
 });
-app.get('/home', function(req, res) {
-	  res.render('home2');
-	});
 app.get('/user', function(req, res) {
-	  res.json(req.session);
-	});
+//	console.log("/user: sending req.session");
+//	console.log(req.session);
+	res.json(req.session);
+});
 
 
 //app.get('/user/:userId/:firstname/:lastname', function(req, res){

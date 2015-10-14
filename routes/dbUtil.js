@@ -75,17 +75,17 @@ function processRequest(userRequest) {
 		case "fViewProfile":
 			user.fViewProfile(userReq.request, userReq.response);
 			break;
-		case "dispalyInvitations":
-			user.dispalyInvitations(userReq.request, userReq.response);
+		case "search":
+			user.search(userReq.request, userReq.response);
 			break;
-		case "displayConnections":
-			user.displayConnections(userReq.request, userReq.response);
+		case "isFriend":
+			user.isFriend(userReq.request, userReq.response);
 			break;
 		case "searchMember":
 			user.searchMember(userReq.request, userReq.response);
 			break;
-		case "updateEducation":
-			user.updateEducation(userReq.request, userReq.response);
+		case "acceptRequest":
+			user.acceptRequest(userReq.request, userReq.response);
 			break;
 		case "insertEducation":
 			user.insertEducation(userReq.request, userReq.response);
@@ -129,7 +129,7 @@ function processRequest(userRequest) {
 
 /* Method to fetch pool size */
 function getPoolSize(){
-	if(poolQueue != null){
+	if(poolQueue != null){		
 		return poolQueue.length;
 	}
 }
@@ -184,10 +184,12 @@ function getDbConn(){
 	var dbConn;
 	if(pool.enablePool == true){
 		if(getPoolSize() <= 0){
+			console.log("Sending empty reply. curr pool size = " + poolQueue.length);
 			dbConn = "empty";
 		}
 		else {
-			//console.log("fetching conn from pool");
+//			console.log("fetching conn from pool");
+//			console.log("curr pool size = " + poolQueue.length);
 			dbConn = getConnection();
 		}
 	}
@@ -199,7 +201,7 @@ function getDbConn(){
 }
 /* Method to add back the connection to pool*/
 function addConnection(dbConn) {
-	if(pool !== null){
+	if(pool !== null){		
 		poolQueue.push(dbConn);
 	}
 }

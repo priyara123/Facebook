@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="home" ng-controller="homeCtrl">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Profile</title>
+    <title>Home:&nbsp;{{user.firstname}}</title>
     <link href="/stylesheets/bootstrap.css" rel="stylesheet">
     <link href="/stylesheets/profile.css" rel="stylesheet">
     <link href="/stylesheets/custom.css" rel="stylesheet">
@@ -15,78 +15,145 @@
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
   </head>
 
-  <body ng-app="profile" ng-controller="profileCtrl" onunload = "onBack()">      
+  <body>      
         <nav class="navbar navbar-blue navbar-static-top" role="navigation">
           <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
               <ul class="nav navbar-nav">
                 <li><h4 style="margin-left:40px;margin-top:20px;">Search for people or groups</h4></li>
                 <li><a href="#"></a></li>                
                 <li><div class="input-group input-group-sm" style="max-width:250px;margin-top:16px;">
-                          <input type="text" class="form-control" placeholder="Search" name="srch-term" id="srch-term">
+                          <input type="text" class="form-control" placeholder="Search" ng-model="searchTerm" id="searchTerm">
                           <div class="input-group-btn">
-                            <button class="btn btn-default" data-target="#search" data-toggle="modal"><span class="glyphicon glyphicon-search"></span></button>
+                            <button class="btn btn-default" data-target="#search" ng-click="search()" data-toggle="modal"><span class="glyphicon glyphicon-search"></span></button>
                           </div>
                         </div></li>
                 
                 <li class="right" style="position:absolute;right:250px;"><button data-target="#notif" data-toggle="modal" class="btn btn-link"><h4>Notifications</h4></button></li>
-                <li class="right" style="position:absolute;right:150px;"><button class="btn btn-link" ng-click="home()"><h4>Home</h4></button></li>
+                <li class="right" style="position:absolute;right:136px;"><button class="btn btn-link" ng-click="gotoProfile()"><h4>My Profile</h4></button></li>
                 <li class="right" style="position:absolute;right:30px;"><button class="btn btn-link" ng-click="logout()"><h4>Sign Out</h4></button></li>
               </ul>
         </nav>
-        
-            <div class="fb-profile">
-                <!-- <div class="row"> -->
-                  
-                <div class="col-sm-12">
-                  <div class="col-sm-1" style="margin-left:0px;">
-            <p></p>
-          </div>          
 
-          <div class="fb-profile" style="margin-left:20px;">
-            <div class="panel panel-default">
-              <div class="panel-body">
-                <p class="lead">News Feed</p>
-                <p>See your timeline posts here</p>
-              </div>
-              <div ng-show="(user.posts.length > 0)" ng-repeat="post in user.posts">
-                <div class="panel panel-default" style="margin-left:30px;margin-right:20px" >
-                  <div class="panel-body">
-                    <p>{{post.pDesc}}</p>
-                    <p>{{post.pDate}}</p>
+        <div class="fb-profile">
+          <div class="col-sm-12">
+            <div class="col-sm-1" style="margin-left:0px;">
+              <p></p>
+            </div>          
+            <div class="fb-profile" style="margin-left:20px;">
+              <div class="panel panel-default">
+                <div class="panel-body">
+                  <p class="lead">Hello&nbsp;{{user.firstname}}!&nbsp;Here's what your friends have to share...</p>
+                  <!-- <p>See your friends' posts here</p> -->
+                  <p ng-show="!(user.friends.length > 0)" style="color:blue">Add friends to see their updates here</p>
+                </div>
+                <div ng-show="(user.feed.length > 0)" ng-repeat="post in user.feed">
+                  <div class="panel panel-default" style="margin-left:30px;margin-right:20px" >
+                    <div class="panel-body">
+                      <h4><button style="font-size:18px" type="button" class="btn btn-link" ng-click="viewProfile(post.postemail, true)">{{post.firstname}}&nbsp;{{post.lastname}}</button>posted:</h4>
+                      <p>&nbsp;&nbsp;&nbsp;{{post.pdesc}}</p>
+                      <p>&nbsp;&nbsp;&nbsp;{{post.pdate}}</p>
+                    </div>
                   </div>
                 </div>
+              </div>
+            </div>                      
+          </div>
+      </div>
+
+  <!-- search modal -->      
+      <div class="modal fade" id="search" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+              <h3 class="modal-title">Search results</h3>
             </div>
+            <div class="modal-body">
+              <p ng-show="((user.searchResults.profiles.length == 0) && (user.searchResults.groups.length == 0))">Sorry, no matches found.Please try again</p>
+                <div ng-show = "(user.searchResults.profiles.length > 0)">
+                  <h4>Matching user profiles</h4>
+                  <table>
+                    <thead></thead>
+                    <tbody>
+                      <tr ng-repeat="profile in user.searchResults.profiles">
+                        <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                        <td><a type="button" class="btn btn-link" ng-click="viewProfile(profile.email, profile.isFriend)">{{profile.firstName}}&nbsp;{{profile.lastName}}</a></td>                                                                        
+                      </tr>
+                    </tbody>
+                </table>
+              </div>
+              <div ng-show = "(user.searchResults.groups.length > 0)">
+                  <p class="lead">Groups Matches</p>
+                  <table ng-show="user.searchResults.groups.length > 0">
+                    <thead></thead>
+                    <tbody>
+                      <tr ng-repeat="group in user.searchResults.groups">
+                          <td><a type="button" class="btn btn-link" ng-click="viewGroup(group.groupId, group.isGroupMember)">{{group.gName}}</a></td>
+                      </tr>
+                    </tbody>
+                </table>
+              </div>
             </div>
-          </div>                      
-            </div>
+          </div>
         </div>
+      </div>
+  <!-- search modal -->      
+
+<!-- notification modal -->
+      <div class="modal fade" id="notif" tabindex="-1" role="dialog" aria-labelledby="lstatus" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+              <h4 class="modal-title">Check your notifications here</h4>
+            </div>
+            <div class="modal-body">
+              <p ng-show="!(user.notifications.length > 0)">You have no friend requests pending to accept.</p>
+                <table ng-show="user.notifications.length > 0">
+                  <thead></thead>
+                  <tbody>
+                    <tr ng-repeat="notification in user.notifications">
+                        <td>You have a friend request from&nbsp;<a type="button" class="btn btn-link" ng-click="viewProfile(notification.email2, false)">{{notification.email2}}</a></td>
+                        <td><button class="btn btn-info btn-xs" ng-click="acceptFR(notification.email2)"><span class="glyphicon glyphicon-ok-sign"></span></button></td>
+                        <td>&nbsp;&nbsp;<button class="btn btn-danger btn-xs" ng-click="deleteFR()"><span class="glyphicon glyphicon-remove-sign"></span></button></td>
+                    </tr>
+                  </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
 </body>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script>
-  
-  $(window).on("navigate", function (event, data) {
-    var direction = data.state.direction;
-    console.log("direction = " + direction);
-    if (direction == 'back') {
-        window.location = '/profile';
-    }
-});
-  var app = angular.module('profile', []);
-      app.controller('profileCtrl', function($http, $scope) {
+  var app = angular.module('home', []);
+      app.controller('homeCtrl', function($http, $scope) {
         
-        var refresh = function() {
-            $http.get('/getData').success(function (response) {
-              $scope.user = response.userProfile;
+        var getFeed = function() {
+            $http.get('/getFeed').success(function (response) {
               console.log(response);
+              if(response != "no friends")
+                $scope.user = response.userProfile;
             }).error(function(error){
                 alert(error);
             });
         };
 
-        refresh();      
+        getFeed();
+
+        /*Get the feed for every 2 mins*/
+        setInterval(function() {
+           getFeed();
+        }, 1000 * 60 * 1);
+
         $scope.logout = function() {
           $http({
                   method: 'POST',
@@ -96,6 +163,27 @@
                   }).error(function(error){
                       alert(error);
               });
+        } 
+
+        $scope.gotoProfile = function() {
+          window.location = '/profile';
+        }
+
+        $scope.search = function() {
+          var text = $scope.searchTerm;
+          console.log("searchTerm: " + text);
+            $http({
+                  method: 'POST',
+                  url: '/search',
+                  data: {
+                      "searchTerm": text             
+                  }
+             }).success(function(response){
+                $scope.user = response.userProfile;
+                console.log(response);
+             }).error(function(error){
+                      alert(error);
+          });             
         }
 
         $scope.home = function() {
@@ -104,43 +192,42 @@
           }).error(function (err) {
               alert(err);
           }); 
-        };
+        };              
 
-        $scope.acceptFR = function(userid) {
-          $http({
-              method: 'POST',
-              url: '/addFriend',
-              data: {
-                "frndname": userid
-              }
-            }).success(function(response) {
-                console.log("add success");
-                refresh();
-            }).error(function(err) { 
-                alert(err);
-                console.log("error occured " + err);
-            });
-        };
-        $scope.addPost = function() {
-          var pDesc = $("#postForm *").filter("input[id='post']").val();
+        
+        $scope.viewProfile = function(userId, isFriend) {
+          console.log("Inside viewProfile");
           $http({
             method: 'POST',
-            url: '/post',
+            url: '/viewProfile',
             data: {
-              "username" : $scope.username,
-              "desc" : pDesc
-            }
-          }).success(function(response) {
-            refresh();
-          }).error(function(err) {
-            alert(err);
-          });
+              "userId": userId,
+              "isFriend": isFriend
+              }
+            }).success(function(response) {
+               if(response.status == "current user")
+                  window.location = '/profile';
+               else {
+                  console.log(response);
+                  window.location = '/viewProfile';
+                }
+               }).error(function (error) {
+                    console.log(error);
+               });
         };
 
-        $scope.viewProfile = function(userId) {
-          console.log("Inside viewProfile");
-          $http.get('/user/' + userId).success(function(response) {
-            window.location = '/user/' + userId;
+
+        $scope.viewGroup = function(grpId, isGroupMember) {
+          console.log("Inside viewGroup");
+          $http({
+            method: 'POST',
+            url: '/viewGroup',
+            data: {
+              "grpId": grpId,
+              "isGroupMember": isGroupMember
+            }
+          }).success(function(response) {
+              window.location = '/viewGroup';
           }).error(function (error) {
             console.log(error);
           });

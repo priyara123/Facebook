@@ -2,21 +2,25 @@ USE `test`;
 DROP TABLE IF EXISTS `UserGroups`;
 DROP TABLE IF EXISTS `Groups`;
 DROP TABLE IF EXISTS `Friends`;
-CREATE TABLE `Groups` (
-  `groupId` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) DEFAULT NULL,
-  `desc` varchar(45) DEFAULT NULL,
-  PRIMARY KEY (`groupId`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
-CREATE TABLE `UserGroups` (
+CREATE TABLE `groups` (
+  `groupId` int(11) NOT NULL AUTO_INCREMENT,
+  `gname` varchar(45) DEFAULT 'GroupName',
+  `gdesc` varchar(45) DEFAULT NULL,
+  `gadmin` varchar(45) NOT NULL,
+  PRIMARY KEY (`groupId`),
+CONSTRAINT `gadmin` FOREIGN KEY (`gadmin`) REFERENCES `users` (`email`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `usergroups` (
   `groupId` int(11) NOT NULL AUTO_INCREMENT,
   `email` varchar(45) NOT NULL,
   PRIMARY KEY (`groupId`,`email`),
   KEY `email_idx` (`email`),
   CONSTRAINT `email` FOREIGN KEY (`email`) REFERENCES `users` (`email`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `groupId` FOREIGN KEY (`groupId`) REFERENCES `Groups` (`groupId`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+  CONSTRAINT `groupId` FOREIGN KEY (`groupId`) REFERENCES `groups` (`groupId`) ON DELETE NO ACTION ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 /*type= 'LE(life event)'*/
 CREATE TABLE `Posts` (

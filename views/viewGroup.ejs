@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html ng-app="group" ng-controller="groupCtrl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>View Group: {{group[0].gName}}</title>
+    <link href="/stylesheets/bootstrap.css" rel="stylesheet">
+    <link href="/stylesheets/sticky-footer.css" rel="stylesheet">
+   <link href="/stylesheets/profile.css" rel="stylesheet">
+   <link href="/stylesheets/datepicker.css" rel="stylesheet">
+   <link href="/stylesheets/custom.css" rel="stylesheet">
+
+   <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+  </head>
+
+  <body>      
+        <nav class="navbar navbar-blue navbar-static-top" role="navigation">
+          <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
+                    <!-- <form class="navbar navbar-blue navbar-static-top"></form> -->
+                <ul class="nav navbar-nav">
+                  <li><a href="#">.<h4></h4></a></li>
+                  <li><a href="#"></a></li>
+                  <li><a href="#"></a></li>
+                  <li class="right" style="position:absolute;right:270px;"><button class="btn btn-link" ng-click="home()"><h4>Home</h4></button></li>
+                  <li class="right" style="position:absolute;right:136px;"><button class="btn btn-link" ng-click="gotoProfile()"><h4>My Profile</h4></button></li>
+                  <li class="right" style="position:absolute;right:30px;"><button class="btn btn-link" ng-click="logout()"><h4>Sign Out</h4></button></li>
+               </ul>
+          </nav><br/>
+
+      <div class="padding">
+          <div class="full col-sm-9">
+              <div class="fb-profile">
+                  <img align="left" alt="Profile image example" class="fb-image-profile thumbnail" src="/img/user.png"><br/>      
+                  <table><tr>
+                  <td><button class = "btn btn-success xs" ng-click="joinGroup()" ng-show="!user.isFriend">&nbsp;&nbsp;Join&nbsp;&nbsp;</button></td><td>&nbsp;&nbsp;</td>
+                  <td><button class = "btn btn-success xs" ng-click="leaveGroup()" ng-show="!user.isFriend">&nbsp;Leave&nbsp;</button></td>
+                  <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                      <div ng-show = "showNote" class="alert alert-info fade in">
+                        <a href="#" class="close" data-dismiss="alert">×</a>
+                        <strong>Note:</strong><p id="note"> Create Group Success. You can view your group in "Groups I own" section</p>
+                      </div>
+                      <div ng-show = "showError" class="alert alert-danger fade in">
+                        <a href="#" class="close" data-dismiss="alert">×</a>
+                        <strong>Error: </strong><p id="error"></p>
+                      </div>
+                    </td></tr>
+                </table>
+              </div>
+          </div>
+      </div>
+      <div class="padding">
+        <div class="padding">
+            <div class="fb-profile">
+                <!-- <div class="full col-sm-9"> -->
+                    <!-- content -->
+
+                    <div class="row">
+                        <!-- main col left -->
+
+                        <div class="col-sm-3" style="margin-left:62px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <p class="lead">About&nbsp;&nbsp;{{group[0].gName}}</p>
+                                    <p>Members: {{group.length}}</p>
+                                    <p>Desc: {{group[0].gDesc}}</p> 
+                                    <p>Admin: {{group[0].adminFirstName}}&nbsp;{{group[0].adminLastName}}</p>                       
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="margin-left:20px;">
+                          <p></p>
+                        </div>
+                    </div>
+                    <!-- content -->
+
+                    <div class="row">
+                        <!-- main col left -->
+
+                        <div class="col-sm-3" style="margin-left:62px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body" ng-show="group.length > 0">
+                                    <p class="lead">Members</p>                                    
+                                    <table>
+                                      <thead>
+                                      </thead>
+                                      <tbody>
+                                        <tr ng-repeat = "member in group">
+                                          <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                                          <td><button type="button" class="btn btn-link" ng-click="viewProfile(member.email)">&nbsp;&nbsp;{{member.firstName}}&nbsp;&nbsp;{{member.lastName}}</a></td>
+                                        </tr>
+                                      </tbody>
+                                    </table>                                                                        
+                                </div>
+                            </div>
+                        </div>
+                      </div>
+
+                      <!-- <div class="row">
+                        <div class="col-sm-3" style="margin-left:62px;">
+                            <div class="panel panel-default">
+                                <div class="panel-body" ng-show="user.groups.length > 0">
+                                    <p class="lead">Groups</p>
+                                    <p>{{user.groups.length}} Groups</p>
+                                    <table>
+                                      <thead>
+                                      </thead>
+                                      <tbody>
+                                        <tr ng-repeat = "group in user.groups">
+                                          <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
+                                          <td><p>&nbsp;&nbsp;{{group.gname}}</p></td>
+                                        </tr>
+                                      </tbody>
+                                    </table>                                                                        
+                                </div>
+                            </div>
+                        </div>
+                      </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script>
+      var app = angular.module('group', []);
+      app.controller('groupCtrl', function($http, $scope) {
+
+        // var refreshFriends = function () {
+        //   $http.get('/userFriends').success(function (response) {
+        //       $scope.friends = response.friends;    
+        //       console.log("response from userfrnds");
+        //       console.log(response.friends);
+        //     }).error(function(error){
+        //         alert(error);
+        //     });
+        // };
+
+        // var refreshGroups = function () {
+        //   $http.get('/userGroups').success(function (response) {
+        //       $scope.groups = response.groups;    
+        //       console.log("response from grpfrnds");
+        //       console.log(response.groups);
+        //     }).error(function(error){
+        //         alert(error);
+        //     });
+        // };
+       var refreshGroup = function() {
+          var grpId = $scope.group[0].groupId;
+          $http.get('/refreshGroup/' + grpId).success(function(response) {
+            $scope.group = response.groupProfile;
+          }).error(function (err) {
+            alert(err);
+          });
+        };
+
+
+        var refresh = function() {
+          $scope.showNote = false;
+          $scope.showError = false;
+            $http.get('/user').success(function (response) {
+              console.log(response.groupProfile);
+              $scope.group = response.groupProfile;
+              refreshGroup();
+            }).error(function(error){
+                alert(error);
+            });
+        };
+        
+        refresh();      
+        //refreshGroup();
+        
+
+        // $scope.home = function() {
+        //   $http.get('/home').success(function (){
+        //     window.location = '/home';
+        //   }).error(function (err) {
+        //       alert(err);
+        //   }); 
+        // };
+
+        $scope.gotoProfile = function() {
+          window.location = '/profile';
+        }
+
+        $scope.home = function() {
+          window.location = '/home';
+        }
+
+
+        $scope.logout = function() {
+          $http({
+                  method: 'POST',
+                  url: '/logout'
+                  }).success(function(response){
+                    window.location='/';
+                  }).error(function(error){
+                      alert(error);
+              });
+        }
+
+        $scope.addFriend = function(userid) {
+          $http({
+              method: 'POST',
+              url: '/addFriend',
+              data: {
+                "userid": userid,
+              }
+            }).success(function(response) {
+                if (response == "success") {
+                  alert("Friend request sent");
+                  console.log("add success");
+                }
+            }).error(function(err) { 
+                alert(err);
+                console.log("error occured " + err);
+            });
+        };
+
+        $scope.logout = function() {
+          $http({
+                  method: 'POST',
+                  url: '/logout'
+                  }).success(function(response){
+                    window.location='/';
+                  }).error(function(error){
+                      alert(error);
+              });
+        }
+
+
+        // /*non-friend view profile*/
+        // $scope.nfViewProfile = function(userId, firstName, lastName) {
+        //     $http.get('/user/' + userId + '/' + firstName + '/' + lastName).success(function(response) {
+        //       window.location = '/user/' + userId + '/' + firstName + '/' + lastName;
+        //     }).error(function (error) {
+        //        alert(error);
+        //     });
+        // }
+
+        $scope.viewProfile = function(userId, isFriend) {
+                  console.log("Inside viewProfile");
+                  $http({
+                    method: 'POST',
+                    url: '/viewProfile',
+                    data: {
+                      "userId": userId,
+                      "isFriend": isFriend
+                    }
+                  }).success(function(response) {
+                    if(response == "current user")
+                      window.location = '/profile';
+                    else
+                      window.location = '/viewProfile';
+                  }).error(function (error) {
+                    console.log(error);
+                  });
+                };
+
+        $scope.joinGroup = function() {
+          $http({
+              method: 'POST',
+              url: '/joinGroup',
+              data: {
+                grpId: $scope.group[0].groupId,
+                gName: $scope.group[0].gName
+              }
+          }).success(function (response) {
+              if(response.status == "success") {
+                $('#note').text('You are now a member of this group');
+                $scope.showNote = true;
+                refreshGroup();      
+              }
+              else if(response.status == "already member") {                
+                $('#error').text('You are already a member of this group');
+                $scope.showError = true;
+              }
+              else if(response.status == "group doesn't exist") {                
+                $('#error').text('This group no longer exists. Admin has deleted this group');
+                $scope.showError = true;
+              }
+          }).error (function (err) {
+              alert(err);
+          });
+        }
+
+        $scope.leaveGroup = function() {
+          $http({
+              method: 'POST',
+              url: '/leaveGroup',
+              data: {
+                grpId: $scope.group[0].groupId,
+                gName: $scope.group[0].gName,
+                gAdmin: $scope.group[0].gAdmin
+              }
+          }).success(function (response) {
+              if(response.status == "success") {
+                refreshGroup();
+                $('#note').text('You have successfully left this group');                
+                $scope.showNote = true;     
+              }
+              else if(response.status == "admin cannot leave") {
+                $('#error').text('You cannot leave the group because you are the admin');
+                $scope.showError = true;                
+              }              
+              else if(response.status == "not a member") {
+                $('#error').text('You cannot leave as you are not a member yet');
+                $scope.showError = true;                
+              }              
+          }).error (function (err) {
+              alert(err);
+          });
+        }
+
+        /*friend view profile*/
+        // $scope.viewProfile = function(userId) {
+        //   $http.get('/user/' + userId).success(function(response) {
+        //     window.location = '/user/' + userId;
+        //   }).error(function (error) {
+        //     console.log(error);
+        //   });
+        // };
+    });
+      
+</script>
+</html>
