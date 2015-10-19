@@ -71,8 +71,9 @@
                 </div>
             </div><br/>
             <input class="form-control input-medium" name="youremail" placeholder="Your Email" type="email" ng-model="email" required/><br/>
-            <input class="form-control input-medium" name="reenteremail" placeholder="Re-enter Email" type="email"/><br/>
-            <input class="form-control input-medium" name="password" placeholder="New Password" type="password" ng-model="pswd" required/><br/>
+            <input class="form-control input-medium" name="reenteremail" ng-model="work" placeholder="Your work information"/><br/>
+            <input class="form-control input-medium" name="reenteremail" ng-model="education" placeholder="Your education information"/><br/>
+            <input class="form-control input-medium" name="password" placeholder="Password" type="password" ng-model="pswd" required/><br/>
             <!-- <div class="control-group"> -->
                 <!-- <div class="controls"> -->
                     <!-- <div class="hero-unit"> -->
@@ -113,9 +114,11 @@
                 method: 'POST',
                 url: '/signup',
                 data: {
-                  "firstname": $scope.fName,
-                  "lastname": $scope.lName,
+                  "firstName": $scope.fName,
+                  "lastName": $scope.lName,
                   "email": $scope.email,
+                  "work": $scope.work,
+                  "education": $scope.education,
                   "password": $scope.pswd,
                   "gender": gender,
                   "dob": dob

@@ -1,8 +1,6 @@
 /*GET users listing*/
-var exce = require('./customExceptions');
 var mysql = require('./dbUtil'); 
-var dbUtil = require('./dbUtil');
-var async = require('async');
+//var bcrypt = require('bcrypt');
 var currSession = {};
 exports.list = function(req, res){
   res.send("respond with a resource");
@@ -37,10 +35,8 @@ exports.logout = function(req, res) {
 					if (rows.affectedRows > 0){
 						console.log("/logout successful");						
 					}	
-					else 
-						exce.customException('User already logged out.', res);
+					mysql.returnDbConn(dbConn);
 				}
-				mysql.returnDbConn(dbConn);				
 			});
 		}
 	}
@@ -51,7 +47,7 @@ exports.search = function(req, res) {
 	var searchTerm = req.body.searchTerm;
 	console.log("/search: " + searchTerm + "; curr user = " + req.session.username);
 	if(dbConn == "empty") {
-		dbUtil.waitPool({name: "search", request: req, response: res});
+		mysql.waitPool({name: "search", request: req, response: res});
 	}
 	else {
 		req.session.userProfile.searchResults = {};
@@ -62,13 +58,12 @@ exports.search = function(req, res) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {		
 				console.log(rows);
 				req.session.userProfile.searchResults.profiles = rows;				
 			}
-			mysql.returnDbConn(dbConn);
 		});
 		
 		/*group search*/
@@ -80,7 +75,7 @@ exports.search = function(req, res) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {
 				console.log(rows);
@@ -107,7 +102,7 @@ exports.getFeed = function(req, res) {
 				  "inner join posts p on p.postemail = f.email2 where u.email = ? order by p.pdate desc";
 		
 		if(dbConn == "empty") {
-			dbUtil.waitPool({name: "getFeed", request: req, response: res});
+			mysql.waitPool({name: "getFeed", request: req, response: res});
 		}
 		else {
 			var query = dbConn.query(sql, [req.session.username], function(err, rows) {
@@ -141,57 +136,11 @@ exports.getFeed = function(req, res) {
 	}
 }
 
-//exports.getFeed = function(req, res) {
-//	console.log("inside getfeed");	
-//	var list = "";		
-//	var sql = "";
-//	var maxPostId;
-//	var friends = req.session.userProfile.friends;
-//	var posts = req.session.feed;
-//	if(posts !== undefined)
-//		maxPostId = posts[0].postid;	
-//	for( var i = 0; i < friends.length - 1; i++) {
-//		list += "'" + friends[i].email + "',"; 
-//	}	
-//	list += "'" + friends[friends.length-1].email + "'";	
-//	if(posts !== undefined)
-//		sql = "select postid, pdesc, pdate from posts where postemail in (" + list + ") and postid > ? order by postid desc";
-//	else
-//		sql = "select postemail, postid, pdesc, pdate from posts where postemail in (" + list + ") order by postid desc";
-//	
-//	console.log("list = " + list);
-//	console.log("sql = " + sql);
-//	console.log("feed = ");
-//	console.log(req.session.feed);
-//	var dbConn = mysql.getDbConn();
-//	if(dbConn = "empty") {
-//		dbUtil.waitPool({name: "getFeed", request: req, response: res});
-//	}
-//	else {
-//		var query = dbConn.query(sql, maxPostId, function(err, rows) {
-//			process.nextTick(function(){
-//				mysql.waitPool(null);
-//			});
-//			if(err) {
-//				console.log(err);
-//			}
-//			else {
-//				console.log(rows);
-//				if(rows.length > 0) {
-//					req.session.feed = rows;
-//					res.send(req.session);
-//				}
-//			}
-//		});
-//		mysql.returnDbConn(dbConn);
-//	}
-//}
-
-
-function getPosts(req, res, userId) {
+function getPosts(req, res) {
+	var userId = req.session.username;
 	var dbConn = mysql.getDbConn();
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name: "getPosts", request: req, response: res});
+		mysql.waitPool({name: "getPosts", request: req, response: res});
 	}
 	else {
 		var query = dbConn.query("select pDesc, pDate from posts where postemail = ? order by pdate desc", [userId], function(err, rows) {
@@ -200,7 +149,6 @@ function getPosts(req, res, userId) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
 			} 
 			else {								
 				req.session.userProfile.posts = rows;
@@ -208,16 +156,19 @@ function getPosts(req, res, userId) {
 				req.session.status = "success";
 				res.send(req.session);
 			}
+			//console.log("returning conn from function: getPosts");
 			mysql.returnDbConn(dbConn);
 		});
 	}
 }
 
 
-function getNotifications(req, res, userId, isRefreshCall) {
+function getNotifications(req, res) {
+	var userId = req.session.username;
+	var isRefreshCall = req.session.isRefreshCall;
 	var dbConn = mysql.getDbConn();
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name: "getNotifications", request: req, response: res});
+		mysql.waitPool({name: "getNotifications", request: req, response: res});
 	}
 	else {
 		var query = dbConn.query("select email2, nDesc from notifications where notifemail = ?", [userId], function(err, rows) {
@@ -226,7 +177,7 @@ function getNotifications(req, res, userId, isRefreshCall) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {							
 				if(isRefreshCall == true) {
@@ -236,9 +187,10 @@ function getNotifications(req, res, userId, isRefreshCall) {
 				}
 				else {
 					req.session.userProfile.notifications = rows;
-					getPosts(req, res, userId);
+					getPosts(req, res);
 				}
 			}
+			//console.log("returning conn from function: getNotifications");
 			mysql.returnDbConn(dbConn);
 		});
 	}
@@ -249,7 +201,7 @@ exports.viewProfile = function(req, res) {
 	console.log("/viewProfile for " + userId);
 	var dbConn = mysql.getDbConn();
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"viewProfile", request: req, response: res});
+		mysql.waitPool({name:"viewProfile", request: req, response: res});
 	} 
 	else {
 		var query = dbConn.query("select email, firstName,lastName from users where email = ?", [userId], function(err, rows) {
@@ -259,7 +211,7 @@ exports.viewProfile = function(req, res) {
 			
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {
 				res.render('user', {firstname: rows[0].firstName, lastname: rows[0].lastName, username: rows[0].email});
@@ -275,7 +227,7 @@ exports.addPost = function(req, res) {
 	console.log("/addPost for " + req.session.username + "; desc = " + req.body.desc );
 	var dbConn = mysql.getDbConn();
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"addPost", request: req, response: res});
+		mysql.waitPool({name:"addPost", request: req, response: res});
 	} 	
 	else {
 		var data = {
@@ -290,7 +242,6 @@ exports.addPost = function(req, res) {
 			
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
 			} 
 			else {
 				console.log("/addPost success " + req.session.username + "; desc = " + req.body.desc);
@@ -307,7 +258,7 @@ exports.deleteGroup = function(req, res) {
 	console.log("/deleteGroup: " + gName + "curr user = " + gAdmin);
 	var dbConn = mysql.getDbConn();
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"deleteGroup", request: req, response: res});
+		mysql.waitPool({name:"deleteGroup", request: req, response: res});
 	} 		
 	else {
 				var query = dbConn.query("delete from usergroups where groupId = ? ", [grpId], function(err, rows) {
@@ -316,12 +267,11 @@ exports.deleteGroup = function(req, res) {
 				});			
 				if (err) {
 					console.log(err);
-					exce.mySqlException(err, res);
+					//exce.mySqlException(err, res);
 				} 
 				else {
 					console.log("/deleteGroup: step1" + gName + " ; success; curr user = " + gAdmin);					
 				}
-				mysql.returnDbConn(dbConn);
 			});
 
 			var query = dbConn.query("delete from groups where groupId = ? ", [grpId], function(err, rows) {
@@ -330,7 +280,6 @@ exports.deleteGroup = function(req, res) {
 			});			
 			if (err) {
 				console.log(err);
-				//exce.mySqlException(err, res);
 			} 
 			else {
 				console.log("/deleteGroup: step2 " + gName + " ; success; curr user = " + gAdmin);
@@ -349,7 +298,7 @@ exports.joinGroup = function(req, res) {
 	var dbConn = mysql.getDbConn();
 	console.log("/joinGroup " + gName + "; curr user = " + userId);
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"joinGroup", request: req, response: res});
+		mysql.waitPool({name:"joinGroup", request: req, response: res});
 	} 		
 	else {
 		var data = {
@@ -396,7 +345,7 @@ exports.leaveGroup = function(req, res) {
 		res.send(req.session);
 	}		
 	else if(dbConn === "empty"){
-		dbUtil.waitPool({name:"leaveGroup", request: req, response: res});
+		mysql.waitPool({name:"leaveGroup", request: req, response: res});
 	} 		
 	else {		
 			var query = dbConn.query("delete from usergroups where groupid = ? and email = ? ", [grpId, userId], function(err, rows) {
@@ -431,7 +380,7 @@ exports.createGroup = function(req, res) {
 	var dbConn = mysql.getDbConn();
 	console.log("/createGroup " + userId + "; desc = " + gDesc);
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"createGroup", request: req, response: res});
+		mysql.waitPool({name:"createGroup", request: req, response: res});
 	} 		
 	else {
 		var data = {
@@ -446,33 +395,12 @@ exports.createGroup = function(req, res) {
 			    });			
 			    if (err) {
 			    	console.log(err);
-			      	exce.mySqlException(err, res);
 			    } 
 			    else {
 			    	console.log("/createGroup step1 success " + data.gAdmin + "; desc = " + data.gDesc);
 			    }
 			});
-			//test start
-			setTimeout(function() {
-				var sql = "select max(groupid),gadmin from groups";
-			    var query = dbConn.query(sql, function(err, rows) {
-			    	process.nextTick(function(){
-			    		mysql.waitPool(null);
-			      	});			
-			      	if (err) {
-			      		console.log(err);
-			      		//exce.mySqlException(err, res);
-			      	} 
-			      	else {
-			      		console.log("max grpid, admin is......");
-			      		console.log(rows);							      					     
-			      	}
-			    });
-			}, 6500);
-			
-			//test end
-			
-			setTimeout(function() {
+						
 				var sql = "insert into usergroups (select groupid,gadmin from groups where groupid in (select max(groupid) from groups))";
 			    var query = dbConn.query(sql, function(err, rows) {
 			    	process.nextTick(function(){
@@ -486,18 +414,18 @@ exports.createGroup = function(req, res) {
 			      		console.log("/createGroup step2 success " + data.gAdmin + "; desc = " + data.gDesc);
 			      		req.session.status = "success";							      					     
 			      	}
-			    });
-			}, 600); 	
+			      	mysql.returnDbConn(dbConn);
+			    });				
 			res.send(req.session);
-			mysql.returnDbConn(dbConn);
 		}
 }
 
-function getGroupMembers(req, res, grpId) {
-	var dbConn = mysql.getDbConn();	
-	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"getGroupMembers", request: req, response: res});
-	} 
+function getGroupInfo(req, res) {
+	var grpId = req.session.grpId;
+	var dbConn = mysql.getDbConn();
+	if(dbConn == "empty") {
+		mysql.waitPool({name:"getGroupInfo", request: req, response: res});	
+	}
 	else {
 		var sql = "select g.gName, g.gDesc, g.gAdmin, usr.firstName as adminFirstName, usr.lastName as adminLastName, g.groupId, u.firstName, u.lastName, ug.email from groups g " + 
 		"inner join usergroups ug on ug.groupId = g.groupId " +
@@ -510,7 +438,6 @@ function getGroupMembers(req, res, grpId) {
 			});			
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
 			} 
 			else {
 				//console.log(rows);				
@@ -520,6 +447,7 @@ function getGroupMembers(req, res, grpId) {
 					res.send(req.session);
 				}
 				else {
+					console.log("grp exists");
 					console.log("grpinfo for " + rows[0].gName);
 					req.session.groupProfile = rows;
 					req.session.status = "success";
@@ -528,52 +456,29 @@ function getGroupMembers(req, res, grpId) {
 			}			
 		});
 		mysql.returnDbConn(dbConn);
-	}	
+	}
 }
 
-exports.getGroup = function(req, res) {
-	var grpId = req.body.grpId;
-	getGroupMembers(req, res, grpId);
+exports.getGroupProfile = function(req, res) {
+	req.session.grpId = req.body.grpId;
+	console.log("/viewGroup, grpid = " + req.body.grpId);
+	getGroupInfo(req, res);
 }
 
 exports.refreshGroup = function(req, res) {
-	var grpId = req.params.grpId;
-	console.log(" grpid = " + grpId);
-	getGroupMembers(req, res, grpId);
+	req.session.grpId = req.params.grpId;
+	console.log("/refreshGroup, grpid = " + req.params.grpId);	
+	getGroupInfo(req, res);
 }
 
 
-//exports.getGroupInfo = function(req, res) {
-//	var grpId = req.body.grpId;
-//	var dbConn = mysql.getDbConn();
-//	if(dbConn === "empty"){
-//		dbUtil.waitPool({name:"getGroupInfo", request: req, response: res});
-//	} 
-//	else {
-//		var query = dbConn.query("select * from groups where groupid = ?", [grpId], function(err, rows) {
-//			process.nextTick(function(){
-//				mysql.waitPool(null);
-//			});
-//			
-//			if (err) {
-//				console.log(err);
-//				exce.mySqlException(err, res);
-//			} 
-//			else {
-//				req.session.groupInfo = rows[0];
-//				getGroupMembers(req, res, grpId);				
-//			}			
-//		});
-//		mysql.returnDbConn(dbConn);
-//	}
-//}
 
 /* view a guest's profile */
 exports.getGuestProfile = function(req, res) {	
 	var userId = req.body.userId;
 	var currUser = req.session.username;
 	var isFriend = req.body.isFriend;
-	console.log("/getGuestProfile: " + "frndname = " + userId + "; curr user = " + req.session.username);
+	console.log("/getGuestProfile: " + "frndname = " + userId + "; curr user = " + currUser);
 	
 	if(userId == currUser) {
 		req.session.status = "current user";
@@ -582,7 +487,7 @@ exports.getGuestProfile = function(req, res) {
 	else {
 		var dbConn = mysql.getDbConn();
 		if(dbConn === "empty"){
-			dbUtil.waitPool({name:"getGuestProfile", request: req, response: res});
+			mysql.waitPool({name:"getGuestProfile", request: req, response: res});
 		} 
 		else {
 			var query = dbConn.query("select email, firstName, lastName, gender, dob, work, education from users where email = ?", [userId], function(err, rows) {
@@ -592,12 +497,13 @@ exports.getGuestProfile = function(req, res) {
 				
 				if (err) {
 					console.log(err);
-					exce.mySqlException(err, res);
 				} 
 				else {
 					req.session.fProfile = rows[0];
 					req.session.fProfile.isFriend = isFriend;
-					getGroups(req, res, userId, true);				
+					req.session.isGuestProfile = true;
+					req.session.currUserId = userId; 
+					getUserGroups(req, res);				
 				}
 				mysql.returnDbConn(dbConn);
 			});	
@@ -610,9 +516,8 @@ exports.addFriend = function(req, res) {
 	var dbConn = mysql.getDbConn();
 	console.log("/addFriend: " + " frndname = " + frndname + "; curr user = " + req.session.username);
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"addFriend", request: req, response: res});
-	}
-	
+		mysql.waitPool({name:"addFriend", request: req, response: res});
+	}	
 	else {
 		var data = {
 				notifEmail: frndname,
@@ -626,7 +531,7 @@ exports.addFriend = function(req, res) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {
 				if(rows[0].count == 0) {					
@@ -645,7 +550,6 @@ exports.addFriend = function(req, res) {
 							res.send(req.session);
 							console.log("/addFriend success " + " frndname = " + frndname + "; curr user = " + req.session.username);
 						}
-						mysql.returnDbConn(dbConn);
 					});				
 				}
 				else {
@@ -665,7 +569,7 @@ exports.deleteRequest = function(req, res) {
 	var dbConn = mysql.getDbConn();
 	console.log("/deleteFR: " + frndName + "; curr user = " + userId + "; nDesc = " + nDesc);
 	if(dbConn == "empty") {
-		dbUtil.waitPool({name:"deleteRequest", request: req, response: res});
+		mysql.waitPool({name:"deleteRequest", request: req, response: res});
 	}
 	else {
 		var sql = "delete from notifications where notifEmail = ? and email2 = ? and nDesc = ?";
@@ -694,7 +598,7 @@ exports.acceptRequest = function(req, res) {
 	var dbConn = mysql.getDbConn();
 	console.log("/acceptRequest: " + " frndname = " + frndName + "; curr user = " + req.session.username);
 	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"acceptRequest", request: req, response: res});
+		mysql.waitPool({name:"acceptRequest", request: req, response: res});
 	}	
 	else {
 		var sql = "insert into friends (email1, email2) values ?";
@@ -708,12 +612,11 @@ exports.acceptRequest = function(req, res) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {
 				console.log("/acceptRequest step1 Success: " + " frndname = " + frndName + "; curr user = " + req.session.username);
 			}
-			mysql.returnDbConn(dbConn);
 		});
 		
 		var query2 = dbConn.query("delete from notifications where notifEmail = ? and email2 = ? and nDesc = ?", [req.session.username, frndName, "FR"], function(err, rows) {
@@ -722,12 +625,11 @@ exports.acceptRequest = function(req, res) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {
 				console.log("/acceptRequest step2 Success: " + " frndname = " + frndName + "; curr user = " + req.session.username);
 			}
-			mysql.returnDbConn(dbConn);
 		});
 		var data = {
 			notifEmail: frndName,
@@ -740,7 +642,7 @@ exports.acceptRequest = function(req, res) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
+				//exce.mySqlException(err, res);
 			} 
 			else {
 				console.log("/acceptRequest step3 Success: " + " frndname = " + frndName + "; curr user = " + req.session.username);
@@ -752,10 +654,12 @@ exports.acceptRequest = function(req, res) {
 	}
 }
 
-function getFriends(req, res, userId, isGuestProfile) {
-	var dbConn = mysql.getDbConn();	
-	if(dbConn === "empty"){
-		dbUtil.waitPool({name: "getFriends", request: req, response: res});
+function getFriends(req, res) {	
+	var isGuestProfile = req.session.isGuestProfile;
+	var userId = req.session.currUserId;
+	var dbConn = mysql.getDbConn();
+	if(dbConn == "empty"){
+		mysql.waitPool({name:"getFriends", request: req, response: res});
 	}
 	else {
 		var query = dbConn.query("select email, firstName, lastName from users where email in (select email2 from friends where email1 =?)", [userId], function(err, rows) {
@@ -764,7 +668,6 @@ function getFriends(req, res, userId, isGuestProfile) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
 			} 
 			else {								
 				if(isGuestProfile) {
@@ -775,33 +678,37 @@ function getFriends(req, res, userId, isGuestProfile) {
 					for(var i = 0; i < rows.length; i++) {
 						rows[i].isFriend = true;
 					}					
-					req.session.userProfile.friends = rows;					
-					getNotifications(req, res, userId, false);					
+					req.session.userProfile.friends = rows;
+					req.session.isRefreshCall = false;
+					getNotifications(req, res);					
 				}
 			}
+			//console.log("returning conn from function: getFriends");
 			mysql.returnDbConn(dbConn);
 		});
 	}
 }
 
 exports.userFriends = function(req, res) {
-	var userId = req.session.username;
+	req.session.isGuestProfile = false;
 	console.log("/userFriends: curr user = " + req.session.username);
-	getFriends(req, res, userId, false);
+	getFriends(req, res);	
 }
 
 exports.refreshProfile = function(req, res) {
-	var userId = req.session.username;
+	req.session.isGuestProfile = false;
+	req.session.currUserId = req.session.username; 
 	req.session.fProfile = {};
-	console.log("/refreshProfile: curr user = " + req.session.username);
-	getGroups(req, res, userId, false);
+	console.log("/refreshProfile: curr user = " + req.session.currUserId);
+	getUserGroups(req, res);
 }
 	
-
-function getGroups(req, res, userId, isGuestProfile) {
+function getUserGroups(req, res) {
+	var userId = req.session.currUserId;
+	var isGuestProfile = req.session.isGuestProfile;
 	var dbConn = mysql.getDbConn();
-	if(dbConn === "empty"){
-		dbUtil.waitPool({name:"getGroups", request: req, response: res});
+	if(dbConn == "empty") {
+		mysql.waitPool({name:"getUserGroups", request: req, response: res});
 	}
 	else {
 		var query = dbConn.query("select groupId, gName, gDesc, gAdmin from groups where groupId in (select groupId from UserGroups where email = ?)", [userId], function(err, rows) {
@@ -810,18 +717,18 @@ function getGroups(req, res, userId, isGuestProfile) {
 			});
 			if (err) {
 				console.log(err);
-				exce.mySqlException(err, res);
 			} 
 			else {				
 				if(isGuestProfile) {
 					req.session.fProfile.groups = rows;
-					getFriends(req, res, userId, true);
+					//console.log("returning conn from function: getUserGroups ***");
+					mysql.returnDbConn(dbConn);
+					getFriends(req, res);
 				}
 				else {
 					req.session.userProfile.groups = rows;
 				}
 			}
-			mysql.returnDbConn(dbConn);
 		});
 		if(!isGuestProfile) {
 			var query = dbConn.query("select groupId, gName, gDesc, gAdmin from groups where gAdmin = ?", [userId], function(err, rows) {
@@ -830,48 +737,21 @@ function getGroups(req, res, userId, isGuestProfile) {
 				});
 				if (err) {
 					console.log(err);
-					exce.mySqlException(err, res);
 				} 
 				else {				
 					req.session.userProfile.myGroups = rows;
-					getFriends(req, res, userId, false);				
+					getFriends(req, res);				
 				}
+				//console.log("returning conn from function: getUserGroups");
 				mysql.returnDbConn(dbConn);
 			});
-		}
+		}		
 	}
 }
 
-//exports.userGroups = function(req, res) {
-//	var userid = req.session.username;
-//	var dbConn = mysql.getDbConn();
-//	console.log("fetching groups...");
-//	if(dbConn === "empty"){
-//		dbUtil.waitPool({name:"findGroups", request: req, response: res});
-//	}
-//	else {
-//		var query = dbConn.query("select gname, gdesc from groups where groupId in (select groupId from UserGroups where email = ?)", [userid], function(err, rows) {
-//			process.nextTick(function(){
-//				mysql.waitPool(null);
-//			});
-//			if (err) {
-//				console.log(err);
-//				exce.mySqlException(err, res);
-//			} 
-//			else {
-//				res.json({"status" : "Success", "groups": rows});
-//				res.end();
-//				console.log("Operation Success!");
-//				console.log(rows);
-//			}
-//			mysql.returnDbConn(dbConn);
-//		});
-//	}
-//}
-
 exports.userGroups = function(req, res) {
-	var userId = req.session.username;
-	getGroups(req, res, userId, false);
+	req.session.isGuestProfile = false;
+	getUserGroups(req, res);
 }
 
 /*Method to verify login*/
@@ -881,7 +761,7 @@ exports.login = function(req, res) {
 	if((userId != "undefined" || userId != "") && (password != "undefined" || password != "")) {
 		var dbConn = mysql.getDbConn();
 		if(dbConn === "empty"){
-			dbUtil.waitPool({name:"login", request: req, response: res});
+			mysql.waitPool({name:"login", request: req, response: res});
 		} 
 		else {
 			var query = dbConn.query("select email, firstname, lastname, gender, dob, work, education from users where email = ? and password = ?", [userId, password], function(err, rows) {
@@ -890,20 +770,21 @@ exports.login = function(req, res) {
 				});		
 				if (err) {
 					console.log(err);
-					exce.mySqlException(err, res);
 				} else {
 					if(rows.length > 0) {
 						//console.log("req.session now...");
 						//console.log(req.session);
 						req.session.username = userId;
+						req.session.currUserId = userId;
 						req.session.userProfile = rows[0];
-						//console.log("login rows");
+						req.session.isGuestProfile = false;
 						console.log("logged in as: " + req.session.username);
-						getGroups(req, res, userId, false);
+						getUserGroups(req, res);
 					}
 					else
 						res.status(500).send('Invalid credentials, please try again');
 				}
+				//console.log("returning conn from function: login");
 				mysql.returnDbConn(dbConn);
 			});
 		}
@@ -914,51 +795,68 @@ exports.login = function(req, res) {
 
 /*Method to insert new user record after sign up*/
 exports.signUp = function(req, res) {	
-	var fname = req.body.firstname, 
-	lname = req.body.lastname,
+	var fName = req.body.firstName, 
+	lName = req.body.lastName,
 	email = req.body.email, 
-	pswd = req.body.password;
+	pswd = req.body.password,
+	work = req.body.work,
+	education = req.body.education,
 	gender = req.body.gender,
 	dob = req.body.dob;
-	console.log("/signup: new user = " + email);
-	var data = {
-			firstName : fname,
-			lastName  : lname,
-			email   : email,
-			password   : pswd,
-			gender  : gender,
-			dob : dob
-		};
+	console.log("/signUp: new user = " + email);
+	
 		var dbConn = mysql.getDbConn();
 		if(dbConn === "empty"){
-			dbUtil.waitPool({name:"insertUser", request: req, response: res});
+			mysql.waitPool({name:"signUp", request: req, response: res});
 		} 
 		else {
-			var query = dbConn.query("insert into users set ? ", data, function(err, rows) {
-				process.nextTick(function(){
-					mysql.waitPool(null);
-				});
-				
-				if (err) {
-					console.log(err);
-					if(err.errno == 1062) {	
-						res.status(500).send("User email already exists. Please try again");
+			//bcrypt.hash(pswd, 5, function(err, hash) {
+				var data = {
+						firstName : fName,
+						lastName  : lName,
+						email   : email,
+						password   : pswd,
+						education: education,
+						work: work,
+						gender  : gender,
+						dob : dob
+					};	
+				var query = dbConn.query("insert into users set ? ", data, function(err, rows) {
+					process.nextTick(function(){
+						mysql.waitPool(null);
+					});
+					
+					if (err) {
+						console.log(err);
+						if(err.errno == 1062) {	
+							res.status(500).send("User email already exists. Please try again");
+						}
+						else if(err.errno == 1040) {	
+							res.status(500).send("Server is busy serving other requests, pls try after few minutes");
+						}
+					} 
+					else {
+						req.session.username = email;
+						req.session.userProfile = {};					
+						req.session.userProfile.firstname = fName;
+						req.session.userProfile.work = work;
+						req.session.userProfile.education = education;
+						req.session.userProfile.lastname = lName;
+						req.session.userProfile.gender = gender;
+						req.session.userProfile.dob = dob;
+						req.session.userProfile.friends = [];
+						console.log("/signup success: " + email);
+						req.session.status = "success";
+						res.send(req.session);
 					}
-					exce.mySqlException(err, res);
-				} 
-				else {
-					req.session.username = email;
-					req.session.userProfile = {};					
-					req.session.userProfile.firstname = fname;
-					req.session.userProfile.lastname = lname;
-					req.session.userProfile.gender = gender;
-					req.session.userProfile.dob = dob;
-					req.session.userProfile.friends = [];
-					console.log("/signup success: " + email);
-					req.session.status = "success";
-					res.send(req.session);
-				}
-				mysql.returnDbConn(dbConn);
-			});
+					//console.log("returning conn from function: signUp");
+					mysql.returnDbConn(dbConn);
+				});
+			//});
 		}
 	}
+exports.getGroupInfo = getGroupInfo;
+exports.getFriends = getFriends;
+exports.getPosts = getPosts;
+exports.getNotifications = getNotifications;
+exports.getUserGroups = getUserGroups;

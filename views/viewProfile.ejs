@@ -94,16 +94,16 @@
 
                         <div class="col-sm-3" style="margin-left:62px;">
                             <div class="panel panel-default">
-                                <div class="panel-body" ng-show="user.groups.length > 0">
+                                <div class="panel-body">
                                     <p class="lead">Groups</p>
-                                    <p>{{user.groups.length}} Groups</p>
-                                    <table>
+                                    <p>{{user.groups.length == 0 ? 'No' : user.groups.length}} Groups</p>
+                                    <table ng-show="user.groups.length > 0">
                                       <thead>
                                       </thead>
                                       <tbody>
                                         <tr ng-repeat = "group in user.groups">
                                           <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
-                                          <td><p>&nbsp;&nbsp;{{group.gName}}</p></td>
+                            <td><a type="button" class="btn btn-link" ng-click="viewGroup(group.groupId, group.isGroupMember)">{{group.gName}}</a></td>
                                         </tr>
                                       </tbody>
                                     </table>                                                                        
@@ -126,26 +126,6 @@
   var app = angular.module('fProfile', []);
       app.controller('fProfileCtrl', function($http, $scope) {
 
-        // var refreshFriends = function () {
-        //   $http.get('/userFriends').success(function (response) {
-        //       $scope.friends = response.friends;    
-        //       console.log("response from userfrnds");
-        //       console.log(response.friends);
-        //     }).error(function(error){
-        //         alert(error);
-        //     });
-        // };
-
-        // var refreshGroups = function () {
-        //   $http.get('/userGroups').success(function (response) {
-        //       $scope.groups = response.groups;    
-        //       console.log("response from grpfrnds");
-        //       console.log(response.groups);
-        //     }).error(function(error){
-        //         alert(error);
-        //     });
-        // };
-
         var refresh = function() {
             $http.get('/user').success(function (response) {
               $scope.user = response.fProfile;
@@ -154,14 +134,6 @@
                 alert(error);
             });
         };
-
-        // $scope.home = function() {
-        //   $http.get('/home').success(function (){
-        //     window.location = '/home';
-        //   }).error(function (err) {
-        //       alert(err);
-        //   }); 
-        // };
 
         $scope.gotoProfile = function() {
           window.location = '/profile';
@@ -215,16 +187,6 @@
               });
         }
 
-
-        // /*non-friend view profile*/
-        // $scope.nfViewProfile = function(userId, firstName, lastName) {
-        //     $http.get('/user/' + userId + '/' + firstName + '/' + lastName).success(function(response) {
-        //       window.location = '/user/' + userId + '/' + firstName + '/' + lastName;
-        //     }).error(function (error) {
-        //        alert(error);
-        //     });
-        // }
-
         $scope.viewProfile = function(userId, isFriend) {
                   console.log("Inside viewProfile");
                   $http({
@@ -244,14 +206,27 @@
                   });
                 };
 
-        /*friend view profile*/
-        // $scope.viewProfile = function(userId) {
-        //   $http.get('/user/' + userId).success(function(response) {
-        //     window.location = '/user/' + userId;
-        //   }).error(function (error) {
-        //     console.log(error);
-        //   });
-        // };
+        $scope.viewGroup = function(grpId, isGroupMember) {
+          console.log("Inside viewGroup");
+          $http({
+            method: 'POST',
+            url: '/viewGroup',
+            data: {
+              "grpId": grpId,
+              "isGroupMember": isGroupMember
+            }
+          }).success(function(response) {
+              if(response.status == "success") {
+                 window.location = '/viewGroup';
+              }
+              else if(response.status == "group doesn't exist") {                
+                  $('#error').text('This group no longer exists. Admin has deleted this group');
+                  $scope.showError = true;
+              }
+          }).error(function (error) {
+            console.log(error);
+          });
+        };
     });
       
 </script>

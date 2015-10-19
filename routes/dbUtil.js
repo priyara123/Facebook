@@ -1,9 +1,10 @@
 var mysql = require('mysql');
 var queue = require('queue');
-var pool = require('./enableConnPool');
+var enablePooling = false;
 var user = require('./user');
 var poolQueue = new queue();
 var waitQueue = new queue();
+
 
 /* Method to get a single conn to the mysqldb */
 function dbConnect() {
@@ -19,9 +20,9 @@ function dbConnect() {
 
 /* Method to initialize the wait pool & conn pool */
 function initPool(poolSize) {
-	if (pool.enablePool && poolQueue != null) {
+	if (enablePooling && poolQueue != null) {
 		poolQueue.start();
-		console.log("creating db conn pool");
+		console.log("creating db conn pool of size = " + poolSize);
 		while(poolSize > 0) {
 			var conn = dbConnect();
 			poolQueue.push(conn);
@@ -29,7 +30,7 @@ function initPool(poolSize) {
 		}
 	}
 	else
-		console.log("WARNING: CONN POOL NOT ENABLED");
+		console.log("WARNING: DB CONNECTION POOLING IS NOT ENABLED");
 	
 	if(waitQueue !== null){
 		waitQueue.start();
@@ -45,14 +46,14 @@ function getConnection() {
 }
 
 /* Method to process diff user requests */
-function processRequest(userRequest) {
+function processRequest(userReq) {
 	console.log("got user request " + userReq.name);
 	switch(userReq.name){
-		case "insertUser":
+		case "signUp":
 			user.signUp(userReq.request, userReq.response);
 			break;
-		case "validateUser":
-			user.validateUser(userReq.request, userReq.response);
+		case "login":
+			user.login(userReq.request, userReq.response);
 			break;
 		case "viewProfile":
 			user.viewProfile(userReq.request, userReq.response);
@@ -66,38 +67,53 @@ function processRequest(userRequest) {
 		case "getPosts":
 			user.getPosts(userReq.request, userReq.response);
 			break;
-		case "findFriends":
-			user.userFriends(userReq.request, userReq.response);
+		case "getFriends":
+			user.getFriends(userReq.request, userReq.response);
 			break;
-		case "findGroups":
-			user.userGroups(userReq.request, userReq.response);
+		case "getUserGroups":
+			user.getUserGroups(userReq.request, userReq.response);
 			break;
-		case "fViewProfile":
-			user.fViewProfile(userReq.request, userReq.response);
+		case "getGuestProfile":
+			user.getGuestProfile(userReq.request, userReq.response);
 			break;
 		case "search":
 			user.search(userReq.request, userReq.response);
 			break;
+		case "addFriend":
+			user.addFriend(userReq.request, userReq.response);
+			break;
+		case "getGroupInfo":
+			user.getGroupInfo(userReq.request, userReq.response);
+			break;
+		case "getNotifications":
+			user.getNotifications(userReq.request, userReq.response);
+			break;		
+		case "deleteRequest":
+			user.deleteRequest(userReq.request, userReq.response);
+			break;
 		case "isFriend":
 			user.isFriend(userReq.request, userReq.response);
 			break;
-		case "searchMember":
-			user.searchMember(userReq.request, userReq.response);
+		case "getFeed":
+			user.getFeed(userReq.request, userReq.response);
+			break;
+		case "refreshProfile":
+			user.refreshProfile(userReq.request, userReq.response);
 			break;
 		case "acceptRequest":
 			user.acceptRequest(userReq.request, userReq.response);
+			break;			
+		case "deleteGroup":
+			user.deleteGroup(userReq.request, userReq.response);
 			break;
-		case "insertEducation":
-			user.insertEducation(userReq.request, userReq.response);
+		case "joinGroup":
+			user.joinGroup(userReq.request, userReq.response);
 			break;
-		case "updateExperience":
-			user.updateExperience(userReq.request, userReq.response);
+		case "leaveGroup":
+			user.leaveGroup(userReq.request, userReq.response);
 			break;
-		case "insertExperience":
-			user.insertExperience(userReq.request, userReq.response);
-			break;
-		case "insertSummary":
-			user.insertSummary(userReq.request, userReq.response);
+		case "createGroup":
+			user.createGroup(userReq.request, userReq.response);
 			break;
 		case "getNotifications":
 			user.getNotifications(userReq.request, userReq.response);
@@ -138,15 +154,15 @@ function getPoolSize(){
  * Adds the requests to waitQueue when all the conns 
  * in the db pool are in use. */
 function waitPool(userRequest){	
-	if(!pool.enablePool) {
+	if(!enablePooling) {
 		return;
 	}
 //	if(poolQueue != null){
 		if(poolQueue.length <= 0){
 			//add user request to wait queue
-			if(userRequest != null){
-				console.log("All dbConns are being used, adding user to waitQueue");
+			if(userRequest != null){				
 				waitQueue.push(userRequest);
+				console.log("All dbConns are being used, adding user to waitQueue; wq length = " + waitQueue.length);
 			}
 		}
 		else{
@@ -182,7 +198,7 @@ function terminateConnPool(){
  * using getConnection() method*/
 function getDbConn(){
 	var dbConn;
-	if(pool.enablePool == true){
+	if(enablePooling == true){
 		if(getPoolSize() <= 0){
 			console.log("Sending empty reply. curr pool size = " + poolQueue.length);
 			dbConn = "empty";
@@ -194,14 +210,14 @@ function getDbConn(){
 		}
 	}
 	else {
-		console.log("conn pooling not enabled, creating a new dbConn");
+		//console.log("conn pooling not enabled, creating a new dbConn");
 		dbConn = dbConnect();
 	}
     return dbConn;
 }
 /* Method to add back the connection to pool*/
 function addConnection(dbConn) {
-	if(pool !== null){		
+	if(poolQueue !== null){		
 		poolQueue.push(dbConn);
 	}
 }
@@ -210,8 +226,8 @@ function addConnection(dbConn) {
  * Returns the conn back to pool if pooling is enabled
  * if pooling is disabled, just ends the conn */
 function returnDbConn(dbConn){
-	if(pool.enablePool === true){
-		//console.log("returning connection...");
+	if(enablePooling === true){
+		//console.log("returning conn; pQ length = " + poolQueue.length);
 		addConnection(dbConn);
 	}
 	else {
@@ -223,3 +239,4 @@ exports.getDbConn = getDbConn;
 exports.returnDbConn = returnDbConn;
 exports.waitPool = waitPool;
 exports.getPoolSize = getPoolSize;
+exports.enablePooling = enablePooling;

@@ -17,7 +17,7 @@
 
   <body>      
         <nav class="navbar navbar-blue navbar-static-top" role="navigation">
-          <img align="center" height="120px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
+          <img align="center" height="100px" src="/img/blue.jpg" style="margin-left:30px;" width="96%">        
               <ul class="nav navbar-nav">
                 <li><a href="#">.<h4></h4></a></li>
                 <li><a href="#"></a></li>
@@ -67,17 +67,16 @@
                           <p>Birthday: {{user.dob}}</p>
                           <p>Work: {{user.work == NULL ? 'No work to show' : user.work}}</p>
                           <p>Education: {{user.education == NULL ? 'No education to show' : user.education}}</p>
-                          <p>{{friends.length}} Followers, 13 Posts</p>
                         </div>
                       </div>
                   <!-- </div> -->
 
                   <!-- <div class="col-sm-3" style="margin-left:62px;"> -->
                 <div class="panel panel-default">
-                  <div class="panel-body" ng-show="user.friends.length > 0">
+                  <div class="panel-body">
                     <p class="lead" >Friends</p>
-                    <p>{{user.friends.length}} Friends</p>
-                    <table>
+                    <p>{{user.friends.length == 0 ? 'No' : user.friends.length}} Friends</p>
+                    <table ng-show="user.friends.length > 0">
                       <tbody>
                         <tr ng-repeat = "friend in user.friends">
                           <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
@@ -88,10 +87,10 @@
                   </div>
                 </div>
                 <div class="panel panel-default">
-                  <div class="panel-body" ng-show="user.groups.length > 0">
+                  <div class="panel-body">
                       <p class="lead">Group Membership</p>
-                      <p>{{user.groups.length}} Groups</p>
-                      <table>
+                      <p>{{user.groups.length == 0 ? 'No' : user.groups.length}} Groups</p>
+                      <table ng-show="user.groups.length > 0">
                         <tbody>
                           <tr ng-repeat = "group in user.groups">
                             <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
@@ -103,10 +102,10 @@
                 </div>
                 <!--Groups I own-->
                 <div class="panel panel-default">
-                  <div class="panel-body" ng-show="user.myGroups.length > 0">
+                  <div class="panel-body">
                       <p class="lead">Groups I own</p>
-                      <p>{{user.myGroups.length}} Groups</p>
-                      <table>
+                      <p>{{user.myGroups.length == 0 ? 'No' : user.myGroups.length}} Groups</p>
+                      <table ng-show="user.myGroups.length > 0">
                         <tbody>
                           <tr ng-repeat = "group in user.myGroups">
                             <td><p><img height="28px" src="https://lh3.googleusercontent.com/uFp_tsTJboUY7kue5XAsGA=s28" width="28px"></p></td>
@@ -358,7 +357,7 @@
 
         setInterval(function() {
            refreshProfile(); 
-        }, 1000 * 60 * 2);
+        }, 1000 * 60 * 20);
              
         $scope.logout = function() {
           $http({
@@ -462,7 +461,7 @@
           var pDesc = $("#postForm *").filter("input[id='post']").val();
           $http({
             method: 'POST',
-            url: '/post',
+            url: '/addPost',
             data: {
               "username" : $scope.username,
               "desc" : pDesc
@@ -500,7 +499,13 @@
               "isGroupMember": isGroupMember
             }
           }).success(function(response) {
-              window.location = '/viewGroup';
+              if(response.status == "success") {
+                 window.location = '/viewGroup';
+              }
+              else if(response.status == "group doesn't exist") {                
+                  $('#error').text('This group no longer exists. Admin has deleted this group');
+                  $scope.showError = true;
+              }
           }).error(function (error) {
             console.log(error);
           });
